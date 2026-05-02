@@ -281,3 +281,54 @@ ax.command:Add("PlyExit", {
         return target:Nick() .. " is not in a vehicle or chair."
     end
 })
+
+ax.command:Add("map", {
+    description = "Change the map",
+    adminOnly = true,
+    arguments = {
+        { name = "map", type = ax.type.string, required = true },
+        { name = "time", type = ax.type.number, required = false }
+    },
+    OnRun = function(self, client, map, delay)
+        if (not map or map == "") then
+            return "You must specify a map."
+        end
+
+        -- Normalize map name
+        map = string.lower(string.Trim(map))
+            
+        delay = delay or 15
+            
+        -- Check if map exists
+        if (not file.Exists("maps/" .. map .. ".bsp", "GAME")) then
+            return "Map '" .. map .. "' does not exist on the server."
+        end
+
+        -- Prevent changing to current map
+        if (game.GetMap() == map) then
+            return "You are already on this map."
+        end
+
+        -- Notify players
+        for _, ply in player.Iterator() do
+            ply:ChatPrint(client:Nick() .. " is changing the map to " .. map .. " in " .. tostring(delay) .. " second(s)")
+        end
+
+        -- Delay slightly to ensure messages send
+        timer.Simple(delay, function()
+            RunConsoleCommand("changelevel", map)
+        end)
+
+        return
+    end
+})
+
+ax.command:Add("StopSounds", {
+    description = "Immediately stops all sounds.",
+    adminOnly = true,
+    OnRun = function(self, client)
+        for _, ply in player.Iterator() do
+            ply:ConCommand( "stopsound" )
+        end
+    end
+})
