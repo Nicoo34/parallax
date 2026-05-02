@@ -1179,6 +1179,12 @@ function PANEL:PopulateInfo(stack)
             continue
         end
 
+        local can, reason = representativeItem:CanInteract(ax.client, k, true)
+
+        if ( v.bShouldHide and can == false ) then
+            continue
+        end
+
         local actionButton = actionsPanel:Add("ax.button.icon")
         actionButton:Dock(TOP)
         actionButton:DockMargin(0, 0, 0, ax.util:ScreenScaleH(2))
@@ -1190,7 +1196,6 @@ function PANEL:PopulateInfo(stack)
         actionButton:SetIcon(v.icon)
         addedActions = addedActions + 1
 
-        local can, reason = representativeItem:CanInteract(ax.client, k, true)
         if ( can == false ) then
             ax.util:PrintDebug("Cannot perform action '" .. k .. "' on item '" .. tostring(representativeItem) .. "': " .. tostring(reason))
             actionButton:SetEnabled(false)
