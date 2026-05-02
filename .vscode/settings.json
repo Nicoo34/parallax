@@ -25,5 +25,6 @@
 
     "editor.insertSpaces": true,
     "editor.trimAutoWhitespace": true,
-    "files.trimTrailingWhitespace": true
+    "files.trimTrailingWhitespace": true,
+    "gluals.gmod.debugRealm": "shared"
 }
