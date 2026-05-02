@@ -282,7 +282,59 @@ ax.command:Add("PlyExit", {
     end
 })
 
-ax.command:Add("map", {
+ax.command:Add("PlyKick", {
+    description = "Kick a player from the server",
+    adminOnly = true,
+    arguments = {
+        { name = "player", type = ax.type.player },
+        { name = "reason", type = ax.type.text, optional = true }
+    },
+    OnRun = function(def, client, target, reason)
+        if ( target == client ) then
+            return "You cannot kick yourself"
+        end
+
+        if ( !isstring(reason) or reason == "" ) then
+            reason = "Kicked by " .. client:Nick()
+        end
+
+        local targetName = target:Nick()
+        target:Kick(reason)
+
+        return "Kicked " .. targetName .. " (" .. reason .. ")"
+    end
+})
+
+ax.command:Add("PlyBan", {
+    description = "Ban a player from the server (minutes; 0 = permanent)",
+    adminOnly = true,
+    arguments = {
+        { name = "player", type = ax.type.player },
+        { name = "minutes", type = ax.type.number },
+        { name = "reason", type = ax.type.text, optional = true }
+    },
+    OnRun = function(def, client, target, minutes, reason)
+        if ( target == client ) then
+            return "You cannot ban yourself"
+        end
+
+        minutes = math.Clamp(math.floor(minutes or 0), 0, 2147483647)
+
+        if ( !isstring(reason) or reason == "" ) then
+            reason = "Banned by " .. client:Nick()
+        end
+
+        local targetName = target:Nick()
+        local duration = minutes == 0 and "permanently" or ( minutes .. " minute(s)" )
+
+        target:Ban(minutes, true)
+        target:Kick(reason)
+
+        return "Banned " .. targetName .. " " .. duration .. " (" .. reason .. ")"
+    end
+})
+
+ax.command:Add("Map", {
     description = "Change the map",
     adminOnly = true,
     arguments = {
