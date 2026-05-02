@@ -290,28 +290,28 @@ ax.command:Add("map", {
         { name = "time", type = ax.type.number, required = false }
     },
     OnRun = function(self, client, map, delay)
-        if (not map or map == "") then
+        if ( !map or map == "" ) then
             return "You must specify a map."
         end
 
         -- Normalize map name
         map = string.lower(string.Trim(map))
-            
+
         delay = delay or 15
-            
+
         -- Check if map exists
-        if (not file.Exists("maps/" .. map .. ".bsp", "GAME")) then
+        if ( !file.Exists("maps/" .. map .. ".bsp", "GAME") ) then
             return "Map '" .. map .. "' does not exist on the server."
         end
 
         -- Prevent changing to current map
-        if (game.GetMap() == map) then
+        if ( game.GetMap() == map ) then
             return "You are already on this map."
         end
 
         -- Notify players
-        for _, ply in player.Iterator() do
-            ply:ChatPrint(client:Nick() .. " is changing the map to " .. map .. " in " .. tostring(delay) .. " second(s)")
+        for _, other in player.Iterator() do
+            other:ChatPrint(client:Nick() .. " is changing the map to " .. map .. " in " .. tostring(delay) .. " second(s)")
         end
 
         -- Delay slightly to ensure messages send
@@ -327,8 +327,8 @@ ax.command:Add("StopSounds", {
     description = "Immediately stops all sounds.",
     adminOnly = true,
     OnRun = function(self, client)
-        for _, ply in player.Iterator() do
-            ply:ConCommand( "stopsound" )
+        for _, other in player.Iterator() do
+            other:ConCommand("stopsound")
         end
     end
 })
