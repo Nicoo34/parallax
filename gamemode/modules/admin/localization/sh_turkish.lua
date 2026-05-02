@@ -4,4 +4,5 @@ ax.localization:Register("tr", {
     ["option.admin.esp.help"] = "Yönetici ESP'yi etkinleştir veya devre dışı bırak.",
     ["tab.admin"] = "Yönetim",
     ["tab.admin.activity"] = "Etkinlik",
+    ["tab.admin.bans"] = "Yasaklar",
 })

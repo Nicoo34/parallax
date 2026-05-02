@@ -4,4 +4,5 @@ ax.localization:Register("de", {
     ["option.admin.esp.help"] = "Admin-ESP aktivieren oder deaktivieren.",
     ["tab.admin"] = "Admin",
     ["tab.admin.activity"] = "Aktivität",
+    ["tab.admin.bans"] = "Sperren",
 })

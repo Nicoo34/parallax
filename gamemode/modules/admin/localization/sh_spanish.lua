@@ -4,4 +4,5 @@ ax.localization:Register("es", {
     ["option.admin.esp.help"] = "Activar o desactivar el ESP de administrador.",
     ["tab.admin"] = "Admin",
     ["tab.admin.activity"] = "Actividad",
+    ["tab.admin.bans"] = "Baneos",
 })

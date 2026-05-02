@@ -9,6 +9,31 @@ CAMI.RegisterPrivilege({
 })
 
 CAMI.RegisterPrivilege({
+    Name = "Parallax - Ban Players",
+    MinAccess = "admin",
+})
+
+CAMI.RegisterPrivilege({
+    Name = "Parallax - Ban Offline Players",
+    MinAccess = "admin",
+})
+
+CAMI.RegisterPrivilege({
+    Name = "Parallax - Unban Players",
+    MinAccess = "admin",
+})
+
+CAMI.RegisterPrivilege({
+    Name = "Parallax - Modify Bans",
+    MinAccess = "admin",
+})
+
+CAMI.RegisterPrivilege({
+    Name = "Parallax - View Bans",
+    MinAccess = "admin",
+})
+
+CAMI.RegisterPrivilege({
     Name = "Parallax - Pickup Players",
     MinAccess = "admin",
 })

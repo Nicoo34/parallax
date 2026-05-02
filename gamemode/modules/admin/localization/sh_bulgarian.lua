@@ -4,4 +4,5 @@ ax.localization:Register("bg", {
     ["option.admin.esp.help"] = "Включване или изключване на админ ESP.",
     ["tab.admin"] = "Админ",
     ["tab.admin.activity"] = "Активност",
+    ["tab.admin.bans"] = "Банове",
 })
