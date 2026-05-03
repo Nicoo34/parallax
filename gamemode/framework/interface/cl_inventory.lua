@@ -350,7 +350,7 @@ function PANEL:BuildPreviewView(client)
     end
 
     local baseAngles = Angle(0, defaultAngles.y, 0)
-    local previewLookAt = headPos - baseAngles:Right() * 18 + Vector(0, 0, -2)
+    local previewLookAt = headPos - baseAngles:Right() * 24 + Vector(0, 0, -2)
     local previewOffset = baseAngles:Forward() * 64 + baseAngles:Right() * 32 - Vector(0, 0, 8)
     local previewOrigin = previewLookAt + previewOffset
     local previewAngles = (previewLookAt - previewOrigin):Angle()
