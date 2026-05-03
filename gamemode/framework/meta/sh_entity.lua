@@ -1,4 +1,4 @@
-local ENTITY = FindMetaTable("Entity")
+local entity = FindMetaTable("Entity")
 
 local MODEL_CHAIRS = {}
 for _, v in pairs(list.Get("Vehicles") ) do
@@ -11,7 +11,7 @@ end
 -- The check is performed against a pre-built lookup table (`MODEL_CHAIRS`) populated at file load time from `list.Get("Vehicles")`, filtered to the `"Chairs"` category. Comparison is case-insensitive.
 -- @realm shared
 -- @return boolean True if the entity's model matches a registered chair model.
-function ENTITY:IsChair()
+function entity:IsChair()
     local model = string.lower( self:GetModel() or "" )
     return MODEL_CHAIRS[model]
 end
@@ -20,7 +20,7 @@ end
 -- The model class is retrieved via `ax.animations:GetModelClass(model)`. If the model class is not a valid non-empty string, the function returns false. Otherwise, it performs a case-insensitive substring search for "female" within the model class name.
 -- @realm shared
 -- @return boolean True if the model class contains "female", false otherwise.
-function ENTITY:IsFemale()
+function entity:IsFemale()
     local modelClass = ax.animations:GetModelClass(self:GetModel())
     if ( !isstring(modelClass) or modelClass == "" ) then return false end
 
@@ -43,9 +43,9 @@ end
 -- @param delay number The cooldown duration in seconds. Pass 0 or omit to perform a pass-through check with no cooldown.
 -- @return boolean True if the action is allowed, false if rate-limited.
 -- @return number|nil The remaining cooldown in seconds when rate-limited.
-function ENTITY:RateLimit(name, delay)
+function entity:RateLimit(name, delay)
     if ( !isstring(name) or name == "" ) then
-        ax.util:PrintError("Invalid rate limit name provided to ENTITY:RateLimit()")
+        ax.util:PrintError("Invalid rate limit name provided to entity:RateLimit()")
         return false
     end
 
@@ -71,9 +71,9 @@ end
 -- @realm shared
 -- @param name string The rate limit identifier to clear (must match the name used when the limit was set via `RateLimit`).
 -- @return boolean True on success, false when `name` is invalid.
-function ENTITY:ResetRateLimit(name)
+function entity:ResetRateLimit(name)
     if ( !isstring(name) or name == "" ) then
-        ax.util:PrintError("Invalid rate limit name provided to ENTITY:ResetRateLimit()")
+        ax.util:PrintError("Invalid rate limit name provided to entity:ResetRateLimit()")
         return false
     end
 
@@ -93,7 +93,7 @@ local DOOR_CLASSES = {
 --- Checks if an entity is a door.
 -- @realm shared
 -- @return boolean True if the entity is a door or it passes the IsEntityDoor hook.
-function ENTITY:IsDoor()
+function entity:IsDoor()
     local try = hook.Run("IsEntityDoor", self)
     if ( try != nil ) then
         return try
@@ -115,7 +115,7 @@ end
 -- @param filter CRecipientFilter|nil Optional recipient filter to limit who hears the sounds.
 -- @return number The total duration of the queued sound sequence in seconds.
 -- @usage ent:EmitQueuedSound({ "vo/line1.wav", "vo/line2.wav" }, 75, 100, 1)
-function ENTITY:EmitQueuedSound(soundNames, soundLevel, pitchPercent, volume, channel, soundFlags, dsp, filter)
+function entity:EmitQueuedSound(soundNames, soundLevel, pitchPercent, volume, channel, soundFlags, dsp, filter)
     soundLevel = soundLevel or 75
     pitchPercent = pitchPercent or 100
     volume = volume or 1
@@ -155,7 +155,7 @@ end
 -- Reads the internal engine variable that tracks lock state: `VehicleLocked` for vehicle entities, `m_bLocked` for doors and other lockable props.
 -- @realm shared
 -- @return boolean True if the entity is locked.
-function ENTITY:IsLocked()
+function entity:IsLocked()
     if ( self:IsVehicle() ) then
         return self:GetInternalVariable("VehicleLocked")
     end
@@ -164,7 +164,7 @@ function ENTITY:IsLocked()
 end
 
 if ( SERVER ) then
-    function ENTITY:ToggleLock()
+    function entity:ToggleLock()
         if ( self:IsLocked() ) then
             self:Fire("unlock", "", 0)
             return
@@ -177,7 +177,7 @@ if ( SERVER ) then
     -- Only meaningful for `prop_door_rotating` entities. Caches the result in `selfTable.m_hPartner` after the first lookup. The search inspects `m_hMaster` on all doors of the same class to find the one that references this door as its master. Returns `NULL` when the entity is not a rotating door or no partner is found.
     -- @realm server
     -- @return Entity The partner door entity, or `nil` if none.
-    function ENTITY:GetDoorPartner()
+    function entity:GetDoorPartner()
         if ( self:GetClass() != "prop_door_rotating" ) then return nil end
 
         local selfTable = self:GetTable()
@@ -208,7 +208,7 @@ if ( SERVER ) then
     -- @param lifeTime number|nil Seconds before the dummy fades out and the original door is restored. Defaults to 120.
     -- @param bIgnorePartner boolean|nil When true, the partner door is not blasted.
     -- @return Entity|nil The created dummy prop entity, or nil on failure.
-    function ENTITY:BlastDoor(velocity, lifeTime, bIgnorePartner)
+    function entity:BlastDoor(velocity, lifeTime, bIgnorePartner)
         if ( !self:IsDoor() ) then return end
 
         if ( IsValid(self.axDoorDummy) ) then
