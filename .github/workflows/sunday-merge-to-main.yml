@@ -6,6 +6,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   merge:
@@ -44,3 +45,11 @@ jobs:
           git checkout main
           git merge origin/staging --no-edit
           git push origin main
+
+      - name: Trigger downstream workflows
+        if: steps.check_day.outputs.is_sunday == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run version.yml --ref main
+          gh workflow run docs-pages.yml --ref main
