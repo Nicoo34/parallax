@@ -44,15 +44,16 @@ This writes the stored group into GMod runtime with `Player:SetUserGroup()`, so 
 
 ## 3. Built-in usergroups
 
-| Usergroup | Level | Immunity | Inherits |
-| --- | ---: | ---: | --- |
-| `user` | 0 | 0 | none |
-| `operator` | 25 | 25 | `user` |
-| `admin` | 50 | 50 | `operator` |
-| `superadmin` | 100 | 100 | `admin` |
+| Usergroup | Level | Immunity | Inherits | Color |
+| --- | ---: | ---: | --- | --- |
+| `user` | 0 | 0 | none | `Color(94, 196, 110)` |
+| `operator` | 25 | 25 | `user` | `Color(128, 164, 226)` |
+| `admin` | 50 | 50 | `operator` | `Color(226, 124, 96)` |
+| `superadmin` | 100 | 100 | `admin` | `Color(203, 109, 255)` |
 
 **Level** controls what you can *assign*.
 **Immunity** controls who you can *target*.
+**Color** controls how the group is accented in the admin usergroups UI.
 
 ---
 
@@ -133,6 +134,7 @@ ax.admin:RegisterUsergroup("leadadmin", {
     level = 75,
     immunity = 75,
     inherits = "admin",
+    color = Color(255, 190, 80),
 })
 ```
 
@@ -143,7 +145,10 @@ ax.admin:RegisterUsergroup("leadadmin", {
 - `level` → access level (higher = more power)
 - `immunity` → targeting protection
 - `inherits` → parent group (usually `admin` or `superadmin`)
+- `color` → UI accent color shown in the admin usergroups panel
 - `bProtected` → prevent removal or downgrade
+
+The `color` field should be a normal GLua `Color(r, g, b)` or `Color(r, g, b, a)` value. It does **not** grant permissions or change hierarchy rules; it only controls display styling. If a custom group does not define a valid color, the admin UI uses a neutral fallback.
 
 ---
 
@@ -173,7 +178,7 @@ end
 
 - Usergroups are stored in the database and mirrored to GMod runtime.
 - Commands are provided to manage groups safely.
-- You can register new groups with levels, immunity, and inheritance.
+- You can register new groups with levels, immunity, inheritance, and UI colors.
 - CAMI integration keeps Parallax compatible with external admin mods.
 
 If you're new to Parallax, start with built-in groups and add custom tiers later.
