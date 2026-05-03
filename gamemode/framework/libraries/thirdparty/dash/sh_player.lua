@@ -15,8 +15,16 @@ function player.GetStaff()
     return staff
 end
 
-function ax.player.meta:__index(key)
-    local val = ax.player.meta[key] or ENTITY[key]
+local player = ax.player.meta or FindMetaTable("Player")
+
+--- Player metatable fallback indexer.
+-- Looks up keys on `ax.player.meta`, then the base Entity metatable, then the player's entity table.
+-- This keeps Parallax player extensions compatible with standard entity methods and per-player stored fields.
+-- @realm shared
+-- @param key any The field or method key being indexed.
+-- @return any The resolved value, or nil if no value exists.
+function player:__index(key)
+    local val = player[key] or ENTITY[key]
     if ( val != nil ) then return val end
 
     if ( isfunction(GetTable) ) then
@@ -34,7 +42,13 @@ if ( CLIENT ) then return end
 -- Fix for https://github.com/Facepunch/garrysmod-issues/issues/2447
 local telequeue = {}
 local setpos = ENTITY.SetPos
-function ax.player.meta:SetPos(pos)
+
+--- Queues a server-side player position update until `FinishMove`.
+-- Overrides the raw Entity:SetPos behavior for players to avoid Garry's Mod issue #2447 by applying the position during movement finalization.
+-- @realm server
+-- @param pos Vector The target world position.
+-- @usage client:SetPos(spawnPosition)
+function player:SetPos(pos)
     telequeue[self] = pos
 end
 
