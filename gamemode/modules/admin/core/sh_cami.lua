@@ -9,6 +9,11 @@ CAMI.RegisterPrivilege({
 })
 
 CAMI.RegisterPrivilege({
+    Name = "Parallax - Manage Usergroups",
+    MinAccess = "superadmin",
+})
+
+CAMI.RegisterPrivilege({
     Name = "Parallax - Ban Players",
     MinAccess = "admin",
 })
