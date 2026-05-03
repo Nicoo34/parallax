@@ -35,12 +35,13 @@ end
 
 player.GetChar = player.GetCharacter
 
+player.GetNickInternal = player.GetNickInternal or player.Nick
+
 --- Returns the player's in-character name when a character is active.
 -- Overrides GMod's built-in `Nick()` method. When the player has an active character (via `GetCharacter()`), returns `character:GetName()`.
 -- Falls back to the Steam name via the original `Nick` implementation (`GetNickInternal`) when no character is loaded (e.g. during character selection).
 -- @realm shared
 -- @return string The character name, or the Steam display name if no character is active.
-player.GetNickInternal = player.GetNickInternal or player.Nick
 function player:Nick()
     local character = self:GetCharacter()
     if ( character ) then
@@ -741,6 +742,14 @@ else
     end
 
     local DEV_CONVAR = GetConVar("developer")
+    --- Returns whether the local client has developer mode enabled at or above a level.
+    -- Reads the `developer` console variable and compares it against `iMinLvl`.
+    -- @realm client
+    -- @param iMinLvl number|nil Minimum developer level required. Defaults to 1.
+    -- @return boolean True if the developer convar is at least the requested level.
+    -- @usage if ( LocalPlayer():InDevMode(2) ) then
+    --     print("Verbose developer tools enabled.")
+    -- end
     function player:InDevMode(iMinLvl)
         if ( iMinLvl == nil ) then iMinLvl = 1 end
 
@@ -772,13 +781,14 @@ if ( CLIENT ) then
     end)
 end
 
+player.ChatPrintInternal = player.ChatPrintInternal or player.ChatPrint
+
 --- Prints colored messages to this player's chat box.
 -- On the server, sends a `"player.chatPrint"` net message containing the arguments; the client-side hook unpacks and passes them to `chat.AddText`.
 -- On the client, calls `chat.AddText` directly.
 -- Accepts the same argument format as `chat.AddText`: alternating `Color` and `string` values.
 -- @realm shared
 -- @param ... Color|string Alternating color and text arguments forwarded to `chat.AddText`.
-player.ChatPrintInternal = player.ChatPrintInternal or player.ChatPrint
 function player:ChatPrint(...)
     if ( SERVER ) then
         ax.net:Start(self, "player.chatPrint", {...})
