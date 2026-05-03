@@ -589,6 +589,7 @@ MODULE:RegisterUsergroup("user", {
     description = "Default player access.",
     level = 0,
     immunity = 0,
+    color = Color(94, 196, 110),
     bProtected = true,
     bDefault = true,
 })
@@ -599,6 +600,7 @@ MODULE:RegisterUsergroup("operator", {
     level = 25,
     immunity = 25,
     inherits = "user",
+    color = Color(128, 164, 226),
 })
 
 MODULE:RegisterUsergroup("admin", {
@@ -607,6 +609,7 @@ MODULE:RegisterUsergroup("admin", {
     level = 50,
     immunity = 50,
     inherits = "operator",
+    color = Color(226, 124, 96),
 })
 
 MODULE:RegisterUsergroup("superadmin", {
@@ -615,6 +618,7 @@ MODULE:RegisterUsergroup("superadmin", {
     level = 100,
     immunity = 100,
     inherits = "admin",
+    color = Color(203, 109, 255),
     bProtected = true,
 })
 

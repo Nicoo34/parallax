@@ -11,30 +11,14 @@
 
 local PANEL = {}
 
-local function SafeNumber(value, fallback)
-    local number = tonumber(value)
-    if ( number == nil ) then
-        return fallback or 0
-    end
-
-    return number
-end
+local DEFAULT_USERGROUP_COLOR = Color(170, 170, 170)
 
 local function GetUsergroupColor(usergroup)
     if ( istable(usergroup) and IsColor(usergroup.color) ) then
         return usergroup.color
     end
 
-    local level = SafeNumber(istable(usergroup) and usergroup.level or 0, 0)
-    if ( level >= 100 ) then
-        return Color(203, 109, 255)
-    elseif ( level >= 50 ) then
-        return Color(226, 124, 96)
-    elseif ( level >= 25 ) then
-        return Color(128, 164, 226)
-    end
-
-    return Color(94, 196, 110)
+    return DEFAULT_USERGROUP_COLOR
 end
 
 local function NotifyClient(message, notificationType)
