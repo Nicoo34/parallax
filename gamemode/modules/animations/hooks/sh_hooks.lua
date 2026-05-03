@@ -166,27 +166,21 @@ function MODULE:HandlePlayerDriving(client, velocity, clientTable)
     end
 
     if ( !client:InVehicle() or !IsValid(client:GetParent()) ) then
-        ax.util:PrintDebug("[ANIMATIONS] HandlePlayerDriving: client not in vehicle or parent invalid.")
         return false
     end
 
     local vehicle = client.lvsGetVehicle and client:lvsGetVehicle() or client:GetVehicle()
     if ( !IsValid(vehicle) ) then
-        ax.util:PrintDebug("[ANIMATIONS] HandlePlayerDriving: vehicle entity is invalid.")
         return false
     end
-
-    ax.util:PrintDebug("[ANIMATIONS] HandlePlayerDriving: client is in vehicle '" .. vehicle:GetClass() .. "'.")
 
     if ( !vehicle.HandleAnimation and vehicle.GetVehicleClass ) then
         local c = vehicle:GetVehicleClass()
         local t = list.Get("Vehicles")[c]
         if ( t and t.Members and t.Members.HandleAnimation ) then
             vehicle.HandleAnimation = t.Members.HandleAnimation
-            ax.util:PrintDebug("[ANIMATIONS] HandlePlayerDriving: resolved HandleAnimation from vehicle list for class '" .. tostring(c) .. "'.")
         else
             vehicle.HandleAnimation = true
-            ax.util:PrintDebug("[ANIMATIONS] HandlePlayerDriving: no HandleAnimation found for vehicle class '" .. tostring(c) .. "', defaulting to true.")
         end
     end
 
@@ -194,7 +188,6 @@ function MODULE:HandlePlayerDriving(client, velocity, clientTable)
     if ( !SEQ_SIT_ROLLERCOASTER ) then
         SEQ_SIT_ROLLERCOASTER = client:LookupSequence("sit_rollercoaster")
         SEQ_SIT = client:LookupSequence("sit")
-        ax.util:PrintDebug("[ANIMATIONS] HandlePlayerDriving: cached sit sequences — sit_rollercoaster=" .. tostring(SEQ_SIT_ROLLERCOASTER) .. ", sit=" .. tostring(SEQ_SIT) .. ".")
     end
 
     if ( clientTable.CalcSeqOverride == -1 ) then
@@ -205,50 +198,37 @@ function MODULE:HandlePlayerDriving(client, velocity, clientTable)
         local sitSeq = -1
 
         local vehicleModel = vehicle:GetModel()
-        ax.util:PrintDebug("[ANIMATIONS] HandlePlayerDriving: resolving sit sequence for model class '" .. tostring(modelClass) .. "', vehicle '" .. vehicleClass .. "', model '" .. tostring(vehicleModel) .. "'.")
-
         if ( vehicleAnims ) then
             local entry = vehicleAnims[vehicleModel] or vehicleAnims[vehicleClass] or vehicleAnims["chair"]
             if ( istable(entry) ) then
                 sitSeq = client:LookupSequence(entry[1])
-                ax.util:PrintDebug("[ANIMATIONS] HandlePlayerDriving: found vehicle anim entry '" .. entry[1] .. "' -> seq " .. tostring(sitSeq) .. ".")
 
                 local offset = entry[2]
                 if ( isvector(offset) ) then
                     client:SetLocalPos(offset)
-                    ax.util:PrintDebug("[ANIMATIONS] HandlePlayerDriving: applied local pos offset " .. tostring(offset) .. ".")
                 end
             elseif ( isstring(entry) ) then
                 sitSeq = client:LookupSequence(entry)
-                ax.util:PrintDebug("[ANIMATIONS] HandlePlayerDriving: found vehicle anim entry '" .. entry .. "' -> seq " .. tostring(sitSeq) .. ".")
             end
-        else
-            ax.util:PrintDebug("[ANIMATIONS] HandlePlayerDriving: no vehicle anim table for model class '" .. tostring(modelClass) .. "', falling back to default sequences.")
         end
 
         if ( sitSeq == -1 ) then
             if ( vehicleClass == "prop_vehicle_jeep" ) then
                 sitSeq = client:LookupSequence("drive_jeep")
-                ax.util:PrintDebug("[ANIMATIONS] HandlePlayerDriving: using drive_jeep -> seq " .. tostring(sitSeq) .. ".")
             elseif ( vehicleClass == "prop_vehicle_airboat" ) then
                 sitSeq = client:LookupSequence("drive_airboat")
-                ax.util:PrintDebug("[ANIMATIONS] HandlePlayerDriving: using drive_airboat -> seq " .. tostring(sitSeq) .. ".")
             elseif ( vehicleClass == "prop_vehicle_prisoner_pod" and vehicle:GetModel() == "models/vehicles/prisoner_pod_inner.mdl" ) then
                 sitSeq = client:LookupSequence("drive_pd")
-                ax.util:PrintDebug("[ANIMATIONS] HandlePlayerDriving: using drive_pd -> seq " .. tostring(sitSeq) .. ".")
             else
                 sitSeq = SEQ_SIT_ROLLERCOASTER
-                ax.util:PrintDebug("[ANIMATIONS] HandlePlayerDriving: using sit_rollercoaster -> seq " .. tostring(sitSeq) .. ".")
             end
         end
 
         clientTable.CalcSeqOverride = sitSeq
-        ax.util:PrintDebug("[ANIMATIONS] HandlePlayerDriving: CalcSeqOverride set to " .. tostring(sitSeq) .. ".")
     end
 
     if ( isfunction(vehicle.HandleAnimation) ) then
         local seq = vehicle:HandleAnimation(client)
-        ax.util:PrintDebug("[ANIMATIONS] HandlePlayerDriving: vehicle.HandleAnimation returned seq=" .. tostring(seq) .. ".")
         if ( seq != nil and seq != -1 ) then
             clientTable.CalcSeqOverride = seq
         end
@@ -256,7 +236,6 @@ function MODULE:HandlePlayerDriving(client, velocity, clientTable)
 
     if ( isfunction(vehicle.CalcMainActivity) ) then
         local act, seq = vehicle:CalcMainActivity(client, velocity)
-        ax.util:PrintDebug("[ANIMATIONS] HandlePlayerDriving: vehicle.CalcMainActivity returned act=" .. tostring(act) .. ", seq=" .. tostring(seq) .. ".")
         if ( act != nil and act != -1 ) then
             clientTable.CalcIdeal = act
         end
@@ -278,7 +257,6 @@ function MODULE:HandlePlayerDriving(client, velocity, clientTable)
         local seqid = client:LookupSequence("sit_" .. holdType)
         if ( seqid != -1 ) then
             clientTable.CalcSeqOverride = seqid
-            ax.util:PrintDebug("[ANIMATIONS] HandlePlayerDriving: weapon-in-vehicle override applied for hold type '" .. holdType .. "' -> seq " .. tostring(seqid) .. ".")
         end
     end
 
