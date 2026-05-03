@@ -15,21 +15,16 @@ function MODULE:GetEntityDisplayText(entity)
     return name, color
 end
 
-function MODULE:HUDPaintTargetIDExtra(entity, x, y, alpha)
+function MODULE:GetTargetIDLines(entity)
     if ( !entity:IsDoor() ) then return end
 
-    local lineSpacing = ax.util:ScreenScaleH(6)
-    local lineCount = 0
-
-    local function DrawLine(text, color)
-        lineCount = lineCount + 1
-        local yPos = y + lineSpacing * lineCount
-        draw.SimpleText(text, "ax.small", x + 1, yPos + 1, Color(0, 0, 0, alpha / 4), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-        draw.SimpleText(text, "ax.small", x, yPos, ColorAlpha(color, alpha / 2), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-    end
+    local lines = {}
 
     local bLocked = entity:GetRelay("locked", false)
-    DrawLine(bLocked and "Locked" or "Unlocked", bLocked and Color(200, 80, 80) or Color(180, 220, 180))
+    lines[#lines + 1] = {
+        text = bLocked and "Locked" or "Unlocked",
+        color = bLocked and Color(200, 80, 80) or Color(180, 220, 180),
+    }
 
     local bPurchased = entity:GetRelay("purchased", false)
     local bOwnable = entity:GetRelay("ownable", true)
@@ -39,18 +34,35 @@ function MODULE:HUDPaintTargetIDExtra(entity, x, y, alpha)
 
     if ( bPurchased ) then
         if ( bOwnedByMe ) then
-            DrawLine("Owned by you", Color(100, 200, 100))
+            lines[#lines + 1] = {
+                text = "Owned by you",
+                color = Color(100, 200, 100),
+            }
         else
-            DrawLine("Privately owned", Color(220, 160, 60))
+            lines[#lines + 1] = {
+                text = "Privately owned",
+                color = Color(220, 160, 60),
+            }
         end
     elseif ( bOwnable ) then
         local cost = ax.config:Get("doors.purchase_cost", 10)
-        DrawLine("For sale - " .. ax.currencies:Format(cost), Color(180, 180, 180))
+        lines[#lines + 1] = {
+            text = "For sale - " .. ax.currencies:Format(cost),
+            color = Color(180, 180, 180),
+        }
     else
-        DrawLine("Not for sale", Color(140, 140, 140))
+        lines[#lines + 1] = {
+            text = "Not for sale",
+            color = Color(140, 140, 140),
+        }
     end
 
     if ( !bOwnedByMe and IsValid(ax.client) and ax.client:HasDoorAccess(entity) ) then
-        DrawLine("You have access", Color(100, 160, 220))
+        lines[#lines + 1] = {
+            text = "You have access",
+            color = Color(100, 160, 220),
+        }
     end
+
+    return lines
 end

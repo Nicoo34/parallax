@@ -162,7 +162,7 @@ ax.localisation = ax.localization
 if ( CLIENT ) then
     local languageConVar = GetConVar("gmod_language")
 
-    concommand.Add("ax_localization_missing_keys", function()
+    concommand.Add("ax_localization_missing_keys", function(client, command, args, argString)
         local localizationLangs = ax.localization.langs
         local defaultLang = localizationLangs.en
         if ( !istable(defaultLang) ) then
@@ -170,7 +170,7 @@ if ( CLIENT ) then
             return
         end
 
-        local langCode = languageConVar and languageConVar:GetString() or "en"
+        local langCode = args[1] or languageConVar and languageConVar:GetString() or "en"
         local currentLang = localizationLangs[langCode]
         if ( !istable(currentLang) ) then
             ax.util:PrintWarning("ax.localization: Localization \"" .. langCode .. "\" is not loaded.")
