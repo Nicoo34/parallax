@@ -1,6 +1,8 @@
 local MODULE = MODULE
 
-function ax.player.meta:HasDoorAccess(door, actions)
+local player = ax.player.meta or FindMetaTable("Player")
+
+function player:HasDoorAccess(door, actions)
     if ( !door:IsDoor() ) then return false end
 
     local doorTable = door:GetTable()

@@ -15,7 +15,9 @@ AX_ALWAYS_RAISED["gmod_camera"] = true
 AX_ALWAYS_RAISED["weapon_physgun"] = true
 AX_ALWAYS_RAISED["swep_construction_kit"] = true
 
-function ax.player.meta:IsWeaponRaised()
+local player = ax.player.meta or FindMetaTable("Player")
+
+function player:IsWeaponRaised()
     if ( ax.config:Get("weapon.raise.alwaysraised", false) ) then return true end
 
     local weapon = self:GetActiveWeapon()
