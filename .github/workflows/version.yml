@@ -2,7 +2,7 @@ name: Generate Version JSON
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, staging ]
   workflow_dispatch:
 
 permissions:
@@ -57,7 +57,7 @@ jobs:
           echo "  \"version\": \"$VERSION\"," >> version.json
           echo "  \"commitCount\": $VALID_COUNT," >> version.json
           echo "  \"commitHash\": \"$(git rev-parse --short HEAD)\"," >> version.json
-          echo "  \"branch\": \"main\"" >> version.json
+          echo "  \"branch\": \"${{ github.ref_name }}\"" >> version.json
           echo "}" >> version.json
 
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
@@ -83,7 +83,7 @@ jobs:
           echo "changed=true" >> "$GITHUB_OUTPUT"
 
       - name: Create and push tag
-        if: steps.commit_version.outputs.changed == 'true'
+        if: steps.commit_version.outputs.changed == 'true' && github.ref_name != 'staging'
         id: tag_version
         run: |
           TAG="v${{ steps.generate_version.outputs.version }}"
@@ -99,11 +99,37 @@ jobs:
           git tag -a "$TAG" -m "Parallax $TAG"
           git push origin "$TAG"
 
+      - name: Generate release body
+        if: steps.commit_version.outputs.changed == 'true' && github.ref_name != 'staging'
+        run: |
+          # Get the previous tag for comparison
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+
+          if [ -n "$PREVIOUS_TAG" ]; then
+            COMMIT_LIST=$(git log --oneline --no-merges "$PREVIOUS_TAG"..HEAD | sed 's/^/- /')
+          else
+            # If no previous tag, get all commits since repository start
+            COMMIT_LIST=$(git log --oneline --no-merges | sed 's/^/- /')
+          fi
+
+          # Create release body combining commit list and ai_notes.md
+          {
+            echo "## Commits in this release"
+            echo ""
+            echo "$COMMIT_LIST"
+            echo ""
+            if [ -f "ai_notes.md" ]; then
+              echo "## Release Notes"
+              echo ""
+              cat ai_notes.md
+            fi
+          } > release_body.md
+
       - name: Create GitHub release
-        if: steps.commit_version.outputs.changed == 'true'
+        if: steps.commit_version.outputs.changed == 'true' && github.ref_name != 'staging'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag_version.outputs.tag }}
           name: Parallax ${{ steps.tag_version.outputs.tag }}
-          body_path: ai_notes.md
+          body_path: release_body.md
           generate_release_notes: true
