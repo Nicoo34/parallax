@@ -29,25 +29,6 @@ function ax.player.meta:__index(key)
     return nil
 end
 
-function ax.player.meta:Timer(name, time, reps, callback, failure)
-    name = self:SteamID64() .. "-" .. name
-    timer.Create(name, time, reps, function()
-        if ax.util:IsValidPlayer(self) then
-            callback(self)
-        else
-            if (failure) then
-                failure()
-            end
-
-            timer.Remove(name)
-        end
-    end)
-end
-
-function ax.player.meta:RemoveTimer(name)
-    timer.Remove(self:SteamID64() .. "-" .. name)
-end
-
 if ( CLIENT ) then return end
 
 -- Fix for https://github.com/Facepunch/garrysmod-issues/issues/2447
