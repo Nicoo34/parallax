@@ -134,6 +134,10 @@ end
 
 function GM:GetPlayerDeathSound(client)
     local deathSound = "vo/npc/male01/pain07.wav"
+    if ( client:IsFemale() ) then
+        deathSound = "vo/npc/female01/pain07.wav"
+    end
+
     local character = client:GetCharacter()
     if ( character ) then
         local classData = character:GetClassData()
@@ -160,6 +164,10 @@ end
 
 function GM:GetPlayerPainSound(client, attacker, healthRemaining, damageInfo)
     local painSound = "vo/npc/male01/pain0" .. math.random(6) .. ".wav"
+    if ( client:IsFemale() ) then
+        painSound = "vo/npc/female01/pain0" .. math.random(6) .. ".wav"
+    end
+
     local character = client:GetCharacter()
     if ( character ) then
         local classData = character:GetClassData()
