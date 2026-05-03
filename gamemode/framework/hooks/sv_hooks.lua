@@ -320,7 +320,7 @@ function GM:PlayerInitialSpawn(client)
         return -- Skip normal player initialization for bots
     end
 
-    timer.Create("ax.player.save." .. steamID64, 300, 1, function()
+    client:Timer("save", 300, 1, function()
         if ( !ax.util:IsValidPlayer(client) ) then return end
 
         client:Save()
@@ -666,11 +666,9 @@ function GM:PlayerDisconnected(client)
         end
     end
 
-    local steamID64 = client:SteamID64()
-    if ( timer.Exists("ax.player.save." .. steamID64) ) then
-        timer.Remove("ax.player.save." .. steamID64)
-    end
+    client:RemoveTimer("save")
 
+    local steamID64 = client:SteamID64()
     AX_CLIENT_QUEUE[steamID64] = nil
 end
 
