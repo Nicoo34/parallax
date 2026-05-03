@@ -240,7 +240,7 @@ local speakingIcon = ax.util:GetMaterial("parallax/icons/volume-full.png", "smoo
 function GM:HUDPaintCurvy()
     local client = ax.client
     if ( !ax.util:IsValidPlayer(client) or !client:Alive() ) then return end
-    if ( IsValid(ax.gui.tab) ) then return false end
+    if ( IsValid(ax.gui.main) or IsValid(ax.gui.tab) ) then return false end
 
     local width, height = ScrW(), ScrH()
 
