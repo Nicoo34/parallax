@@ -241,6 +241,124 @@ ax.option:Add("hud.bar.armor.show", ax.type.bool, true, {
     bNoNetworking = true
 })
 
+ax.option:Add("hud.elements.enabled", ax.type.bool, true, {
+    category = "interface",
+    subCategory = "hud",
+    description = "hud.elements.enabled.help",
+    bNoNetworking = true
+})
+
+ax.option:Add("hud.targetid.enabled", ax.type.bool, true, {
+    category = "interface",
+    subCategory = "hud",
+    description = "hud.targetid.enabled.help",
+    bNoNetworking = true
+})
+
+ax.option:Add("hud.targetid.distance", ax.type.number, 96, {
+    category = "interface",
+    subCategory = "hud",
+    description = "hud.targetid.distance.help",
+    min = 32,
+    max = 512,
+    decimals = 0,
+    bNoNetworking = true
+})
+
+ax.option:Add("hud.targetid.fade_speed_in", ax.type.number, 10, {
+    category = "interface",
+    subCategory = "hud",
+    description = "hud.targetid.fade_speed_in.help",
+    min = 1,
+    max = 30,
+    decimals = 0,
+    bNoNetworking = true
+})
+
+ax.option:Add("hud.targetid.fade_speed_out", ax.type.number, 10, {
+    category = "interface",
+    subCategory = "hud",
+    description = "hud.targetid.fade_speed_out.help",
+    min = 1,
+    max = 30,
+    decimals = 0,
+    bNoNetworking = true
+})
+
+ax.option:Add("hud.targetid.position_speed", ax.type.number, 20, {
+    category = "interface",
+    subCategory = "hud",
+    description = "hud.targetid.position_speed.help",
+    min = 1,
+    max = 40,
+    decimals = 0,
+    bNoNetworking = true
+})
+
+ax.option:Add("hud.targetid.max_width", ax.type.number, 128, {
+    category = "interface",
+    subCategory = "hud",
+    description = "hud.targetid.max_width.help",
+    min = 64,
+    max = 384,
+    decimals = 0,
+    bNoNetworking = true
+})
+
+ax.option:Add("hud.targetid.line_spacing", ax.type.number, 6, {
+    category = "interface",
+    subCategory = "hud",
+    description = "hud.targetid.line_spacing.help",
+    min = 4,
+    max = 16,
+    decimals = 0,
+    bNoNetworking = true
+})
+
+ax.option:Add("hud.targetid.visible_delay", ax.type.number, 0.1, {
+    category = "interface",
+    subCategory = "hud",
+    description = "hud.targetid.visible_delay.help",
+    min = 0,
+    max = 1,
+    decimals = 2,
+    bNoNetworking = true
+})
+
+ax.option:Add("hud.targetid.player_offset", ax.type.number, 16, {
+    category = "interface",
+    subCategory = "hud",
+    description = "hud.targetid.player_offset.help",
+    min = 0,
+    max = 64,
+    decimals = 0,
+    bNoNetworking = true
+})
+
+ax.option:Add("hud.targetid.flash_speed", ax.type.number, 0.75, {
+    category = "interface",
+    subCategory = "hud",
+    description = "hud.targetid.flash_speed.help",
+    min = 0.1,
+    max = 5,
+    decimals = 2,
+    bNoNetworking = true
+})
+
+ax.option:Add("hud.targetid.show_descriptions", ax.type.bool, true, {
+    category = "interface",
+    subCategory = "hud",
+    description = "hud.targetid.show_descriptions.help",
+    bNoNetworking = true
+})
+
+ax.option:Add("hud.targetid.show_extras", ax.type.bool, true, {
+    category = "interface",
+    subCategory = "hud",
+    description = "hud.targetid.show_extras.help",
+    bNoNetworking = true
+})
+
 -- Chat preferences
 ax.option:Add("chat.timestamps", ax.type.bool, false, {
     category = "chat",
