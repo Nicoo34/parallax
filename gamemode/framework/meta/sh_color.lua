@@ -1,4 +1,4 @@
-local color = FindMetaTable( "Color" )
+local color = FindMetaTable("Color")
 
 --- Returns true if the color is perceived as dark by a human viewer.
 -- Computes the W3C-standard relative luminance using the formula: `0.299 * R + 0.587 * G + 0.114 * B` (weights reflect human eye sensitivity to each channel). The result is compared against `minimumThreshold`: values below the threshold are considered dark.
@@ -11,7 +11,7 @@ local color = FindMetaTable( "Color" )
 -- else
 --     draw.SimpleText("Hello", "Default", x, y, Color(0, 0, 0))
 -- end
-function color:IsDark( minimumThreshold )
+function color:IsDark(minimumThreshold)
     minimumThreshold = minimumThreshold or 186
     return ( self.r * 0.299 + self.g * 0.587 + self.b * 0.114 ) < minimumThreshold
 end
