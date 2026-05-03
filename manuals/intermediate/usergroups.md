@@ -1,4 +1,4 @@
-# Usergroup System (Admin Module)
+# Usergroups
 
 This guide explains **what the Parallax usergroup system is**, **how it works**, and **how to extend it**.
 It is written for beginner schema developers and server owners who are new to the framework.
