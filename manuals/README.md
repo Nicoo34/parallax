@@ -13,6 +13,7 @@ Complete documentation for the Parallax Framework - a roleplay framework for Gar
 7. [Examples](06-EXAMPLES.md) - Practical code examples
 8. [Best Practices](07-BEST_PRACTICES.md) - Guidelines for development
 9. [UI Theme Guidelines](08-UI_THEME_GUIDELINES.md) - Glass UI system, colors, fonts, and component reference
+10. [HUD Elements and TargetID Tooltips](09-HUD_ELEMENTS.md) - Beginner-friendly guide to custom HUD elements and tooltip lines
 
 ## Quick Links
 
@@ -27,6 +28,9 @@ Check [API Reference](05-API_REFERENCE.md) for complete function documentation.
 
 ### For Examples
 Browse [Examples](06-EXAMPLES.md) to see practical implementations.
+
+### For HUD Tooltips
+Read [HUD Elements and TargetID Tooltips](09-HUD_ELEMENTS.md) to learn how to add custom TargetID tooltip lines without manual drawing code.
 
 ### For Admin/Usergroup Setup
 Read [Usergroup System](intermediate/usergroups.md) for a beginner-friendly walkthrough of staff roles and permissions.
