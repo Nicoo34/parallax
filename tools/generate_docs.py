@@ -20,6 +20,7 @@ DEFAULT_SOURCE_DIRS = ("gamemode/framework", "gamemode/modules")
 DEFAULT_DOCS_DIR = "docs"
 DEFAULT_API_SUBDIR = "api"
 DEFAULT_LIBRARIES_SUBDIR = "libraries"
+DEFAULT_META_SUBDIR = "meta"
 DEFAULT_HOOKS_SUBDIR = "hooks"
 DEFAULT_MANUALS_SOURCE_DIR = "manuals"
 DEFAULT_MANUALS_SUBDIR = "manuals"
@@ -62,6 +63,24 @@ GM_HOOK_DEF_RE = re.compile(r"^\s*(?:local\s+)?function\s+GM:([A-Za-z_][\w]*)\s*
 MODULE_HOOK_DEF_RE = re.compile(r"^\s*(?:local\s+)?function\s+MODULE:([A-Za-z_][\w]*)\s*\(")
 HOOK_RUN_RE = re.compile(r'\bhook\.Run\s*\(\s*["\']([^"\']+)["\']')
 HOOK_ADD_RE = re.compile(r'\bhook\.Add\s*\(\s*["\']([^"\']+)["\']')
+
+META_TYPES = ("character", "color", "entity", "inventory", "item", "player", "tool")
+META_TYPE_TITLES = {
+    "character": "Character Meta",
+    "color": "Color Meta",
+    "entity": "Entity Meta",
+    "inventory": "Inventory Meta",
+    "item": "Item Meta",
+    "player": "Player Meta",
+    "tool": "Tool Meta",
+}
+META_ALIAS_RE = re.compile(
+    r"^\s*(?:local\s+)?([A-Za-z_][\w]*)\s*=\s*ax\.({})\.meta\b".format("|".join(META_TYPES))
+)
+META_FIND_RE = re.compile(
+    r"^\s*(?:local\s+)?([A-Za-z_][\w]*)\s*=.*FindMetaTable\s*\(\s*[\"'](Character|Color|Entity|Inventory|Item|Player|Tool)[\"']\s*\)"
+)
+AX_META_FUNCTION_RE = re.compile(r"^ax\.({})\.meta[:\.]".format("|".join(META_TYPES)))
 
 HOOK_KIND_ORDER = ("gm", "module", "run", "add")
 HOOK_KIND_TITLE = {
@@ -137,6 +156,7 @@ class FunctionDoc:
     params: List[ParamDoc]
     returns: List[ReturnDoc]
     usage: List[str]
+    meta_type: Optional[str] = None
 
 
 @dataclass
@@ -190,6 +210,11 @@ def parse_args() -> argparse.Namespace:
         "--libraries-subdir",
         default=DEFAULT_LIBRARIES_SUBDIR,
         help="Libraries output subdirectory under docs_dir.",
+    )
+    parser.add_argument(
+        "--meta-subdir",
+        default=DEFAULT_META_SUBDIR,
+        help="Metatable output subdirectory under docs_dir.",
     )
     parser.add_argument(
         "--hooks-subdir",
@@ -271,6 +296,32 @@ def infer_realm_from_filename(file_path: Path) -> Optional[str]:
     if lower.startswith("sh_"):
         return "shared"
     return None
+
+
+def update_meta_aliases(line: str, aliases: Dict[str, str]) -> None:
+    alias_match = META_ALIAS_RE.match(line)
+    if alias_match:
+        aliases[alias_match.group(1)] = alias_match.group(2)
+        return
+
+    find_match = META_FIND_RE.match(line)
+    if find_match:
+        aliases[find_match.group(1)] = find_match.group(2).lower()
+
+
+def infer_meta_type(function_name: str, aliases: Dict[str, str]) -> Optional[str]:
+    ax_match = AX_META_FUNCTION_RE.match(function_name)
+    if ax_match:
+        return ax_match.group(1)
+
+    if ":" in function_name:
+        prefix = function_name.split(":", 1)[0]
+    elif "." in function_name:
+        prefix = function_name.split(".", 1)[0]
+    else:
+        return None
+
+    return aliases.get(prefix)
 
 
 def collect_doc_lines_above(lines: Sequence[str], index: int) -> List[str]:
@@ -568,7 +619,7 @@ def _uncovered_file_docs(
     file_docs: Sequence["FileDoc"],
     library_index: Dict[str, List[Tuple["FileDoc", "FunctionDoc"]]],
 ) -> List["FileDoc"]:
-    """Return FileDoc objects whose functions don't appear in any ax.* library."""
+    """Return FileDoc objects whose functions don't appear in any ax.* library or meta page."""
     covered: set[str] = {
         str(fd.source_path.resolve())
         for entries in library_index.values()
@@ -578,6 +629,9 @@ def _uncovered_file_docs(
     result = []
     for fd in file_docs:
         key = str(fd.source_path.resolve())
+        if all(fn.meta_type for fn in fd.functions):
+            continue
+
         if key not in covered and key not in seen:
             seen.add(key)
             result.append(fd)
@@ -601,6 +655,9 @@ def build_ax_library_index(file_docs: Sequence[FileDoc]) -> Dict[str, List[Tuple
     index: Dict[str, List[Tuple[FileDoc, FunctionDoc]]] = defaultdict(list)
     for file_doc in file_docs:
         for function_doc in file_doc.functions:
+            if function_doc.meta_type:
+                continue
+
             library_name = extract_ax_library_name(function_doc.name)
             if library_name:
                 index[library_name].append((file_doc, function_doc))
@@ -615,6 +672,144 @@ def build_ax_library_index(file_docs: Sequence[FileDoc]) -> Dict[str, List[Tuple
         )
 
     return dict(sorted(index.items(), key=lambda item: nav_sort_key(item[0])))
+
+
+def build_meta_index(file_docs: Sequence[FileDoc]) -> Dict[str, List[Tuple[FileDoc, FunctionDoc]]]:
+    index: Dict[str, List[Tuple[FileDoc, FunctionDoc]]] = defaultdict(list)
+    for file_doc in file_docs:
+        for function_doc in file_doc.functions:
+            if function_doc.meta_type:
+                index[function_doc.meta_type].append((file_doc, function_doc))
+
+    for entries in index.values():
+        entries.sort(
+            key=lambda item: (
+                nav_sort_key(item[1].name),
+                nav_sort_key(item[0].source_path.as_posix()),
+                item[1].line,
+            )
+        )
+
+    return {meta_type: index[meta_type] for meta_type in META_TYPES if meta_type in index}
+
+
+def render_meta_index(
+    meta_index: Dict[str, List[Tuple[FileDoc, FunctionDoc]]],
+    meta_pages: Dict[str, Path],
+    meta_subdir: str,
+) -> str:
+    index_doc = Path(meta_subdir) / "index.md"
+    total_functions = sum(len(entries) for entries in meta_index.values())
+
+    lines: List[str] = []
+    lines.append("# Metatables")
+    lines.append("")
+    lines.append(
+        "Aggregated reference pages for documented Parallax metatable extensions. "
+        "Methods are grouped by target metatable so extensions defined across multiple source files appear together."
+    )
+    lines.append("")
+    lines.append(f"Metatables: **{len(meta_index)}** &nbsp;·&nbsp; Documented methods: **{total_functions}**")
+    lines.append("")
+    lines.append("| Metatable | Methods | Realm(s) |")
+    lines.append("| --- | --- | --- |")
+
+    for meta_type, entries in meta_index.items():
+        page_path = meta_pages[meta_type]
+        link = relative_doc_link(index_doc, page_path)
+        realms = sorted({fn.realm for _, fn in entries if fn.realm})
+        realm_str = ", ".join(f"`{r}`" for r in realms) if realms else ""
+        title = META_TYPE_TITLES.get(meta_type, pretty_nav_label(meta_type))
+        lines.append(f"| [{title}]({link}) | {len(entries)} | {realm_str} |")
+
+    lines.append("")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def render_meta_page(
+    root: Path,
+    meta_type: str,
+    output_relative: Path,
+    entries: Sequence[Tuple[FileDoc, FunctionDoc]],
+) -> str:
+    title = META_TYPE_TITLES.get(meta_type, pretty_nav_label(meta_type))
+    realms = sorted({fn.realm for _, fn in entries if fn.realm})
+    realm_str = ", ".join(f"`{r}`" for r in realms)
+
+    lines: List[str] = []
+    lines.append(f"# {title}")
+    lines.append("")
+    lines.append(
+        f"All documented `{meta_type}` metatable methods discovered across framework and module source files."
+    )
+    lines.append("")
+    stats = f"Documented methods: **{len(entries)}**"
+    if realm_str:
+        stats += f" &nbsp;·&nbsp; Realm: {realm_str}"
+    lines.append(stats)
+    lines.append("")
+    lines.append("## Methods")
+    lines.append("")
+    for _, function_doc in entries:
+        lines.append(f"- [`{function_doc.signature}`](#{anchor_for_function(function_doc)})")
+    lines.append("")
+    lines.append("---")
+    lines.append("")
+
+    for file_doc, function_doc in entries:
+        source_rel = file_doc.source_path.relative_to(root).as_posix()
+        lines.append(f'<a id="{anchor_for_function(function_doc)}"></a>')
+        lines.append(f"### `{function_doc.signature}`")
+        lines.append("")
+
+        if function_doc.description:
+            lines.append(function_doc.description)
+            lines.append("")
+
+        if function_doc.realm:
+            lines.append(f"Realm: `{function_doc.realm}`")
+            lines.append("")
+
+        if function_doc.params:
+            lines.append("**Parameters**")
+            lines.append("")
+            lines.append("| Name | Type | Description |")
+            lines.append("| --- | --- | --- |")
+            for param in function_doc.params:
+                lines.append(
+                    "| `{}` | `{}` | {} |".format(
+                        escape_table_cell(param.name),
+                        escape_table_cell(param.type_name),
+                        escape_table_cell(param.description or "-"),
+                    )
+                )
+            lines.append("")
+
+        if function_doc.returns:
+            lines.append("**Returns**")
+            lines.append("")
+            for return_doc in function_doc.returns:
+                if return_doc.description:
+                    lines.append(f"- `{return_doc.type_name}`: {return_doc.description}")
+                else:
+                    lines.append(f"- `{return_doc.type_name}`")
+            lines.append("")
+
+        if function_doc.usage:
+            lines.append("**Usage**")
+            lines.append("")
+            for snippet in function_doc.usage:
+                lines.append("```lua")
+                lines.append(snippet.rstrip())
+                lines.append("```")
+                lines.append("")
+
+        lines.append(f"Source: `{source_rel}:{function_doc.line}`")
+        lines.append("")
+        lines.append("---")
+        lines.append("")
+
+    return "\n".join(lines).rstrip() + "\n"
 
 
 def render_libraries_index(
@@ -822,6 +1017,45 @@ def build_libraries_nav_lines(
         lines.extend(render_api_nav_lines(api_tree, indent))
 
     return lines
+
+
+def build_meta_nav_lines(meta_pages: Dict[str, Path], meta_subdir: str, indent: int = 6) -> List[str]:
+    if not meta_pages:
+        return []
+
+    lines = [f'{" " * indent}- "Overview": {normalize_nav_path(f"{meta_subdir}/index.md")}']
+    for meta_type in META_TYPES:
+        page_path = meta_pages.get(meta_type)
+        if not page_path:
+            continue
+
+        title = META_TYPE_TITLES.get(meta_type, pretty_nav_label(meta_type))
+        lines.append(f'{" " * indent}- {yaml_quote(title)}: {normalize_nav_path(page_path.as_posix())}')
+
+    return lines
+
+
+def api_entries_without_meta(file_docs: Sequence[FileDoc]) -> List[FileDoc]:
+    result: List[FileDoc] = []
+    for file_doc in file_docs:
+        functions = [function for function in file_doc.functions if not function.meta_type]
+        if not functions:
+            continue
+
+        result.append(
+            FileDoc(
+                source_path=file_doc.source_path,
+                source_group=file_doc.source_group,
+                relative_path=file_doc.relative_path,
+                output_relative=file_doc.output_relative,
+                module=file_doc.module,
+                section=file_doc.section,
+                summary=file_doc.summary,
+                functions=functions,
+            )
+        )
+
+    return result
 
 
 def collect_hook_occurrences(source_dirs: Sequence[Path]) -> List[HookOccurrence]:
@@ -1094,8 +1328,11 @@ def build_file_doc(
 
     functions: List[FunctionDoc] = []
     first_function_index = len(lines)
+    meta_aliases: Dict[str, str] = {}
 
     for index, line in enumerate(lines):
+        update_meta_aliases(line, meta_aliases)
+
         parsed_def = find_function_definition(line)
         if not parsed_def:
             continue
@@ -1115,6 +1352,7 @@ def build_file_doc(
         args = sanitize_signature_args(raw_args)
         signature = f"{function_name}({args})"
         realm = parsed_comment.realm or infer_realm_from_filename(file_path)
+        meta_type = infer_meta_type(function_name, meta_aliases)
         functions.append(
             FunctionDoc(
                 name=function_name,
@@ -1125,6 +1363,7 @@ def build_file_doc(
                 params=parsed_comment.params,
                 returns=parsed_comment.returns,
                 usage=parsed_comment.usage,
+                meta_type=meta_type,
             )
         )
 
@@ -1239,6 +1478,7 @@ def render_api_index(
     file_docs: Sequence[FileDoc],
     api_subdir: str,
     libraries_subdir: str,
+    meta_subdir: str,
     hooks_subdir: str,
 ) -> str:
     grouped: Dict[str, List[FileDoc]] = defaultdict(list)
@@ -1251,6 +1491,7 @@ def render_api_index(
     lines.append("File-organized view of all documented Lua source, generated from LDOC annotations.")
     lines.append("")
     lines.append("For concept-first browsing, use [Libraries](../{}/index.md).".format(libraries_subdir))
+    lines.append("For metatable extensions, use [Metatables](../{}/index.md).".format(meta_subdir))
     lines.append("For hook discovery, use [Hooks](../{}/index.md).".format(hooks_subdir))
     lines.append("")
     lines.append(f"Total documented functions: **{sum(len(file_doc.functions) for file_doc in file_docs)}**")
@@ -1296,6 +1537,7 @@ def build_mkdocs_yaml(
     root_pages: Sequence[Tuple[str, str]],
     manuals_nav_lines: Sequence[str],
     libraries_nav_lines: Sequence[str],
+    meta_nav_lines: Sequence[str],
     hooks_nav_lines: Sequence[str],
     logo_path: Optional[str] = None,
     favicon_path: Optional[str] = None,
@@ -1377,6 +1619,10 @@ def build_mkdocs_yaml(
     if libraries_nav_lines:
         lines.append("  - API:")
         lines.extend(libraries_nav_lines)
+
+    if meta_nav_lines:
+        lines.append("  - Metatables:")
+        lines.extend(meta_nav_lines)
 
     if hooks_nav_lines:
         lines.append("  - Hooks:")
@@ -1547,6 +1793,7 @@ def main() -> None:
     docs_dir = normalize_path(root, args.docs_dir)
     api_dir = docs_dir / args.api_subdir
     libraries_docs_dir = docs_dir / args.libraries_subdir
+    meta_docs_dir = docs_dir / args.meta_subdir
     hooks_docs_dir = docs_dir / args.hooks_subdir
     manuals_docs_dir = docs_dir / args.manuals_subdir
     mkdocs_path = normalize_path(root, args.mkdocs_file)
@@ -1566,6 +1813,12 @@ def main() -> None:
         else:
             shutil.rmtree(libraries_docs_dir)
             print(f"Removed: {libraries_docs_dir}")
+    if args.clean and meta_docs_dir.exists():
+        if args.dry_run:
+            print(f"[dry-run] Would remove: {meta_docs_dir}")
+        else:
+            shutil.rmtree(meta_docs_dir)
+            print(f"Removed: {meta_docs_dir}")
     if args.clean and hooks_docs_dir.exists():
         if args.dry_run:
             print(f"[dry-run] Would remove: {hooks_docs_dir}")
@@ -1595,8 +1848,10 @@ def main() -> None:
 
     file_docs.sort(key=lambda item: item.output_relative.as_posix())
 
+    api_file_docs = api_entries_without_meta(file_docs)
+
     changed_api_files = 0
-    for file_doc in file_docs:
+    for file_doc in api_file_docs:
         output_path = docs_dir / file_doc.output_relative
         markdown = render_file_markdown(file_doc, root)
         if write_if_changed(output_path, markdown, args.dry_run):
@@ -1605,10 +1860,10 @@ def main() -> None:
             print(f"{status}: {output_path.relative_to(root)}")
 
     source_to_api_page = {
-        str(file_doc.source_path.resolve()): file_doc.output_relative for file_doc in file_docs
+        str(file_doc.source_path.resolve()): file_doc.output_relative for file_doc in api_file_docs
     }
 
-    library_index = build_ax_library_index(file_docs)
+    library_index = build_ax_library_index(api_file_docs)
     library_pages: Dict[str, Path] = {}
     changed_library_files = 0
     expected_library_files: set[str] = set()
@@ -1626,7 +1881,7 @@ def main() -> None:
     libraries_index_relative = Path(args.libraries_subdir) / "index.md"
     libraries_index_path = docs_dir / libraries_index_relative
     expected_library_files.add(str(libraries_index_path.resolve()))
-    uncovered = _uncovered_file_docs(file_docs, library_index)
+    uncovered = _uncovered_file_docs(api_file_docs, library_index)
     libraries_index_content = render_libraries_index(library_index, library_pages, args.libraries_subdir, uncovered)
     if write_if_changed(libraries_index_path, libraries_index_content, args.dry_run):
         changed_library_files += 1
@@ -1634,6 +1889,32 @@ def main() -> None:
         print(f"{status}: {libraries_index_path.relative_to(root)}")
 
     remove_stale_generated_markdown(libraries_docs_dir, expected_library_files, args.dry_run)
+
+    meta_index = build_meta_index(file_docs)
+    meta_pages: Dict[str, Path] = {}
+    changed_meta_files = 0
+    expected_meta_files: set[str] = set()
+    for meta_type, entries in meta_index.items():
+        output_relative = Path(args.meta_subdir) / f"{meta_type}.md"
+        meta_pages[meta_type] = output_relative
+        output_path = docs_dir / output_relative
+        expected_meta_files.add(str(output_path.resolve()))
+        content = render_meta_page(root, meta_type, output_relative, entries)
+        if write_if_changed(output_path, content, args.dry_run):
+            changed_meta_files += 1
+            status = "[dry-run] Would write" if args.dry_run else "Wrote"
+            print(f"{status}: {output_path.relative_to(root)}")
+
+    meta_index_relative = Path(args.meta_subdir) / "index.md"
+    meta_index_path = docs_dir / meta_index_relative
+    expected_meta_files.add(str(meta_index_path.resolve()))
+    meta_index_content = render_meta_index(meta_index, meta_pages, args.meta_subdir)
+    if write_if_changed(meta_index_path, meta_index_content, args.dry_run):
+        changed_meta_files += 1
+        status = "[dry-run] Would write" if args.dry_run else "Wrote"
+        print(f"{status}: {meta_index_path.relative_to(root)}")
+
+    remove_stale_generated_markdown(meta_docs_dir, expected_meta_files, args.dry_run)
 
     hook_occurrences = collect_hook_occurrences(source_dirs)
     grouped_hooks = group_hook_occurrences(hook_occurrences)
@@ -1670,9 +1951,10 @@ def main() -> None:
 
     api_index_path = api_dir / "index.md"
     api_index_content = render_api_index(
-        file_docs=file_docs,
+        file_docs=api_file_docs,
         api_subdir=args.api_subdir,
         libraries_subdir=args.libraries_subdir,
+        meta_subdir=args.meta_subdir,
         hooks_subdir=args.hooks_subdir,
     )
     if write_if_changed(api_index_path, api_index_content, args.dry_run):
@@ -1682,6 +1964,7 @@ def main() -> None:
     root_pages = collect_root_pages(docs_dir)
     manuals_nav_lines = build_manuals_nav_lines(manuals_docs_dir, args.manuals_subdir)
     libraries_nav_lines = build_libraries_nav_lines(library_pages, args.libraries_subdir, uncovered, args.api_subdir)
+    meta_nav_lines = build_meta_nav_lines(meta_pages, args.meta_subdir)
     hooks_nav_lines = build_hooks_nav_lines(args.hooks_subdir)
     logo_relative = "assets/images/parallax-logo.png"
     favicon_relative = "assets/images/favicon.png"
@@ -1698,6 +1981,7 @@ def main() -> None:
         root_pages=root_pages,
         manuals_nav_lines=manuals_nav_lines,
         libraries_nav_lines=libraries_nav_lines,
+        meta_nav_lines=meta_nav_lines,
         hooks_nav_lines=hooks_nav_lines,
         logo_path=logo_path,
         favicon_path=favicon_path,
@@ -1708,11 +1992,12 @@ def main() -> None:
         print(f"{status}: {mkdocs_path.relative_to(root)}")
 
     print(
-        "Done. Scanned {} Lua files, documented {} files, changed {} API pages, {} library pages, {} hook pages{}.".format(
+        "Done. Scanned {} Lua files, documented {} files, changed {} API pages, {} library pages, {} meta pages, {} hook pages{}.".format(
             scanned_files,
             len(file_docs),
             changed_api_files,
             changed_library_files,
+            changed_meta_files,
             changed_hook_files,
             " (dry-run)" if args.dry_run else "",
         )
