@@ -9,15 +9,14 @@
     Attribution is required. If you use or modify this file, you must retain this notice.
 ]]
 
---- Player meta functions
--- @module ax.player.meta
+local player = ax.player.meta or {}
 
 --- Returns the player's actual Steam display name, bypassing the character name override.
 -- Delegates directly to `GetNickInternal` (the original GMod `Nick` method saved before the Parallax override).
 -- Use this when you specifically need the Steam name rather than the in-character name.
 -- @realm shared
 -- @return string The player's Steam display name.
-function ax.player.meta:SteamName()
+function player:SteamName()
     return self:GetNickInternal()
 end
 
@@ -26,7 +25,7 @@ end
 -- Returns nil when the player is in the character selection screen or has no character loaded. Aliased as `GetChar`.
 -- @realm shared
 -- @return table|nil The active character instance, or nil if none is loaded.
-function ax.player.meta:GetCharacter()
+function player:GetCharacter()
     local tbl = self:GetTable()
     -- NULL/disconnected player entities can still have type() == "Player" but no entity table.
     if ( !istable(tbl) ) then return nil end
@@ -34,15 +33,15 @@ function ax.player.meta:GetCharacter()
     return tbl.axCharacter
 end
 
-ax.player.meta.GetChar = ax.player.meta.GetCharacter
+player.GetChar = player.GetCharacter
 
 --- Returns the player's in-character name when a character is active.
 -- Overrides GMod's built-in `Nick()` method. When the player has an active character (via `GetCharacter()`), returns `character:GetName()`.
 -- Falls back to the Steam name via the original `Nick` implementation (`GetNickInternal`) when no character is loaded (e.g. during character selection).
 -- @realm shared
 -- @return string The character name, or the Steam display name if no character is active.
-ax.player.meta.GetNickInternal = ax.player.meta.GetNickInternal or ax.player.meta.Nick
-function ax.player.meta:Nick()
+player.GetNickInternal = player.GetNickInternal or player.Nick
+function player:Nick()
     local character = self:GetCharacter()
     if ( character ) then
         local name = character:GetName()
@@ -119,7 +118,7 @@ end
 -- Delegates to `ax.faction:Get` using the result of `GetFaction()`. Returns nil when the player is not in a valid faction.
 -- @realm shared
 -- @return table|nil The faction definition table, or nil if not in a faction.
-function ax.player.meta:GetFactionData()
+function player:GetFactionData()
     local factionData = ax.faction:Get(self:GetFaction())
     return factionData
 end
@@ -129,7 +128,7 @@ end
 -- Returns nil when the player has no active character or the character has no class assigned.
 -- @realm shared
 -- @return table|nil The class definition table, or nil if no class is set.
-function ax.player.meta:GetClassData()
+function player:GetClassData()
     local char = self:GetCharacter()
     if ( !char ) then return nil end
 
@@ -146,7 +145,7 @@ end
 -- Returns nil when the player has no active character or the character has no rank assigned.
 -- @realm shared
 -- @return table|nil The rank definition table, or nil if no rank is set.
-function ax.player.meta:GetRankData()
+function player:GetRankData()
     local char = self:GetCharacter()
     if ( !char ) then return nil end
 
@@ -170,7 +169,7 @@ ax.player.gestureCache = ax.player.gestureCache or {}
 -- @param slot number The gesture layer slot (0–6) to play the animation in.
 -- @param sequence string|number The sequence name (string) or sequence ID (number) to play.
 -- @return nil Always returns nil on the server (result via net message); nil on error.
-function ax.player.meta:PlayGesture(slot, sequence)
+function player:PlayGesture(slot, sequence)
     local character = self:GetCharacter()
     if ( !character ) then
         ax.util:PrintDebug("Player:PlayGesture() called but player has no character.")
@@ -221,7 +220,7 @@ end
 -- @realm shared
 -- @param iFactionID number The numeric faction index to check.
 -- @return boolean True if the player is whitelisted for the faction, false otherwise.
-function ax.player.meta:HasFactionWhitelist(iFactionID)
+function player:HasFactionWhitelist(iFactionID)
     if ( !isnumber(iFactionID) ) then
         ax.util:PrintError("Invalid faction ID provided to Player:HasFactionWhitelist()")
         return false
@@ -241,7 +240,7 @@ end
 -- This is more reliable than just checking the move type, as some gamemodes (like DarkRP) set `MOVETYPE_NOCLIP` when the player is arrested but they are still solid and visible.
 -- @realm shared
 -- @return boolean True if the player is in noclip mode, false otherwise.
-function ax.player.meta:InNoclip()
+function player:InNoclip()
     return self:GetMoveType() == MOVETYPE_NOCLIP and self:GetNoDraw()
 end
 
@@ -249,7 +248,7 @@ end
 -- Reads the `"ragdolled"` relay key set by `SetRagdolled`. Returns false when the relay has not been set or has been cleared.
 -- @realm shared
 -- @return boolean True if the player is currently ragdolled, false otherwise.
-function ax.player.meta:IsRagdolled()
+function player:IsRagdolled()
     return self:GetRelay("ragdolled", false) == true
 end
 
@@ -289,7 +288,7 @@ if ( SERVER ) then
     -- Removes `axRagdollWeapons` and `axRagdollActiveWeapon` from the player's entity table.
     -- Called automatically by `RestoreRagdollWeapons` after weapons are given back, and can be called manually to discard weapon state without restoring.
     -- @realm server
-    function ax.player.meta:ClearRagdollWeapons()
+    function player:ClearRagdollWeapons()
         self.axRagdollWeapons = nil
         self.axRagdollActiveWeapon = nil
     end
@@ -302,7 +301,7 @@ if ( SERVER ) then
     -- Call `RestoreRagdollWeapons` to re-give them.
     -- Intended to be called as part of the ragdoll creation flow.
     -- @realm server
-    function ax.player.meta:StripWeaponsForRagdoll()
+    function player:StripWeaponsForRagdoll()
         local character = self:GetCharacter()
         local inventory = character and character:GetInventory() or nil
         local activeWeapon = self:GetActiveWeapon()
@@ -354,7 +353,7 @@ if ( SERVER ) then
     -- After all weapons are restored, re-selects the previously active weapon (or `ax_hands` as a fallback).
     -- Calls `ClearRagdollWeapons` when done.
     -- @realm server
-    function ax.player.meta:RestoreRagdollWeapons()
+    function player:RestoreRagdollWeapons()
         local weaponData = self.axRagdollWeapons
         if ( !istable(weaponData) ) then
             self:ClearRagdollWeapons()
@@ -430,7 +429,7 @@ if ( SERVER ) then
     -- @param bRagdolled boolean True to ragdoll the player, false (or any non-true value) to un-ragdoll.
     -- @param bForced boolean|nil When true, skips the `"CanPlayerRagdoll"` hook check.
     -- @return Entity|false|nil The ragdoll entity, false if blocked by hook, or nil on failure.
-    function ax.player.meta:SetRagdolled(bRagdolled, bForced)
+    function player:SetRagdolled(bRagdolled, bForced)
         local ragdoll = Entity(self:GetRelay("ragdoll.index", -1))
         local bHasRagdollState = self:GetRelay("ragdolled", false) or IsValid(ragdoll) or istable(self.axRagdollWeapons)
 
@@ -545,7 +544,7 @@ if ( SERVER ) then
     -- Passes `bForced` through to skip the `"CanPlayerRagdoll"` hook check.
     -- @realm server
     -- @param bForced boolean|nil When true, bypasses the `"CanPlayerRagdoll"` hook.
-    function ax.player.meta:ToggleRagdoll(bForced)
+    function player:ToggleRagdoll(bForced)
         self:SetRagdolled(!self:GetRelay("ragdolled", false), bForced)
     end
 
@@ -557,7 +556,7 @@ if ( SERVER ) then
     -- @realm server
     -- @param iFactionID number The numeric faction index to whitelist or un-whitelist.
     -- @param bStatus boolean True to grant whitelist access, false to revoke it.
-    function ax.player.meta:SetFactionWhitelisted(iFactionID, bStatus)
+    function player:SetFactionWhitelisted(iFactionID, bStatus)
         if ( !isnumber(iFactionID) ) then
             ax.util:PrintError("Invalid faction ID provided to Player:SetFactionWhitelisted()")
             return
@@ -584,7 +583,7 @@ if ( SERVER ) then
     -- Falls back to the registered default when a var has no value set.
     -- Call this after any direct modification to `axVars` that bypasses the standard `SetVar` / `SetData` pathway.
     -- @realm server
-    function ax.player.meta:Save()
+    function player:Save()
         local clientTable = self:GetTable()
         if ( !istable(clientTable.axVars) ) then clientTable.axVars = {} end
         if ( !istable(clientTable.axVars.data) ) then clientTable.axVars.data = {} end
@@ -631,7 +630,7 @@ if ( SERVER ) then
     -- If no `callback` is provided, a debug message is printed instead.
     -- @realm server
     -- @param callback function|nil Called as `callback(ok)` where `ok` is true on success, false on error.
-    function ax.player.meta:EnsurePlayer(callback)
+    function player:EnsurePlayer(callback)
         local steamID64 = self:SteamID64()
 
         local function finish(ok)
@@ -691,7 +690,7 @@ if ( SERVER ) then
     -- @param cancel function|nil Called when the player cancels or closes the dialog.
     -- @param confirmText string|nil Label for the confirm button. Defaults to `"OK"`.
     -- @param cancelText string|nil Label for the cancel button. Defaults to `"Cancel"`.
-    function ax.player.meta:DermaStringRequest(title, subtitle, default, confirm, cancel, confirmText, cancelText)
+    function player:DermaStringRequest(title, subtitle, default, confirm, cancel, confirmText, cancelText)
         confirmText = confirmText or "OK"
         cancelText = cancelText or "Cancel"
 
@@ -712,7 +711,7 @@ if ( SERVER ) then
     -- @param title string The window title.
     -- @param buttonName string|nil Label for the dismiss button.
     -- @param onClosed function|nil Called when the player closes the dialog.
-    function ax.player.meta:DermaMessage(text, title, buttonName, onClosed)
+    function player:DermaMessage(text, title, buttonName, onClosed)
         ax.net:Start(self, "player.dermaMessage", text, title, buttonName)
 
         local clientTable = self:GetTable()
@@ -730,7 +729,7 @@ else
     -- This is the client-side counterpart to the server's database-backed `EnsurePlayer`.
     -- @realm client
     -- @param callback function|nil Called as `callback(true)` when the player is ready.
-    function ax.player.meta:EnsurePlayer(callback)
+    function player:EnsurePlayer(callback)
         local clientTable = self:GetTable()
         if ( clientTable.axReady ) then
             if ( isfunction(callback) ) then callback(true) end
@@ -742,7 +741,7 @@ else
     end
 
     local DEV_CONVAR = GetConVar("developer")
-    function ax.player.meta:InDevMode(iMinLvl)
+    function player:InDevMode(iMinLvl)
         if ( iMinLvl == nil ) then iMinLvl = 1 end
 
         return DEV_CONVAR:GetInt() >= iMinLvl
@@ -754,7 +753,7 @@ end
 -- Returns 0 when `axJoinTime` has not been set (e.g. before the player has fully initialised).
 -- @realm shared
 -- @return number The number of seconds in the current session, or 0 if unavailable.
-function ax.player.meta:GetSessionPlayTime()
+function player:GetSessionPlayTime()
     local joinTime = self:GetTable().axJoinTime
     if ( !joinTime ) then return 0 end
 
@@ -779,8 +778,8 @@ end
 -- Accepts the same argument format as `chat.AddText`: alternating `Color` and `string` values.
 -- @realm shared
 -- @param ... Color|string Alternating color and text arguments forwarded to `chat.AddText`.
-ax.player.meta.ChatPrintInternal = ax.player.meta.ChatPrintInternal or ax.player.meta.ChatPrint
-function ax.player.meta:ChatPrint(...)
+player.ChatPrintInternal = player.ChatPrintInternal or player.ChatPrint
+function player:ChatPrint(...)
     if ( SERVER ) then
         ax.net:Start(self, "player.chatPrint", {...})
     else
@@ -797,7 +796,7 @@ end
 -- @param text string The notification message to display.
 -- @param type string|nil The notification type (e.g. `"error"`, `"success"`, `"info"`).
 -- @param length number|nil Display duration in seconds.
-function ax.player.meta:Notify(text, type, length)
+function player:Notify(text, type, length)
     if ( SERVER ) then
         ax.notification:Send(self, text, type, length)
     else
@@ -810,7 +809,7 @@ end
 -- The `false` third argument to `SetRelay` suppresses the normal broadcast so each value is sent only to this player rather than all receivers.
 -- Called when the player becomes ready to ensure they receive the full relay state.
 -- @realm shared
-function ax.player.meta:SyncRelay()
+function player:SyncRelay()
     for k, v in pairs( ax.relay.data["global"] or {} ) do
         self:SetRelay( k, v, false, self )
     end
@@ -839,7 +838,7 @@ end
 -- @param onCancel function|nil Called when the bar is cancelled before completion.
 -- @param bAllowRagdolled boolean|nil When true, allows the action bar while ragdolled.
 -- @return false|nil Returns false if blocked due to ragdoll state; nil otherwise.
-function ax.player.meta:PerformAction(label, duration, onComplete, onCancel, bAllowRagdolled)
+function player:PerformAction(label, duration, onComplete, onCancel, bAllowRagdolled)
     if ( SERVER ) then
         if ( label == nil ) then
             local selfTable = self:GetTable()
@@ -888,7 +887,7 @@ end
 -- @param allowEyeTrace boolean|nil When true, also accepts the eye trace as a valid look target.
 -- @param maxDistance number|nil Maximum allowed distance to the entity (in world units). Ignored when 0 or nil.
 -- @return boolean True if the player can maintain the action, false otherwise.
-function ax.player.meta:CanMaintainEntityAction(entity, allowEyeTrace, maxDistance)
+function player:CanMaintainEntityAction(entity, allowEyeTrace, maxDistance)
     if ( !ax.util:IsValidPlayer(self) or !IsValid(entity) ) then
         return false
     end
@@ -930,7 +929,7 @@ end
 -- @param onCancel function|nil Called when the bar is cancelled.
 -- @param allowEyeTrace boolean|nil When true, the eye trace is also accepted (see `CanMaintainEntityAction`).
 -- @param maxDistance number|nil Maximum allowed distance to the entity. Ignored when nil.
-function ax.player.meta:PerformEntityAction(entity, label, duration, onComplete, onCancel, allowEyeTrace, maxDistance)
+function player:PerformEntityAction(entity, label, duration, onComplete, onCancel, allowEyeTrace, maxDistance)
     local timerName = "ax.player." .. self:SteamID64() .. ".entityAction"
     timer.Create(timerName, 0.1, 0, function()
         if ( !IsValid(entity) or !ax.util:IsValidPlayer(self) ) then
