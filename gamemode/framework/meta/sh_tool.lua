@@ -4,7 +4,7 @@
 ax.tool = ax.tool or {}
 ax.tool.meta = ax.tool.meta or {}
 
-local TOOL = ax.tool.meta or {}
+local tool = ax.tool.meta or {}
 
 --- Creates and returns a new tool object instance from this metatable.
 -- Replicated from the Sandbox tool base (`stool.lua`).
@@ -13,7 +13,7 @@ local TOOL = ax.tool.meta or {}
 -- @realm shared
 -- @return table A new tool instance with default field values.
 -- code replicated from gamemodes/sandbox/entities/weapons/gmod_tool/stool.lua
-function TOOL:Create()
+function tool:Create()
     local object = {}
 
     setmetatable(object, self)
@@ -38,7 +38,7 @@ end
 -- On the server, creates the `"toolmode_allow_<mode>"` convar (with `FCVAR_NOTIFY`) which controls whether this tool mode is permitted on the server.
 -- This is called automatically during tool registration.
 -- @realm shared
-function TOOL:CreateConVars()
+function tool:CreateConVars()
     local mode = self:GetMode()
 
     if ( CLIENT ) then
@@ -61,7 +61,7 @@ end
 -- @realm shared
 -- @param property string The convar suffix (the part after `"<mode>_"`).
 -- @return string The string value of the convar.
-function TOOL:GetServerInfo(property)
+function tool:GetServerInfo(property)
     local mode = self:GetMode()
     return GetConVarString(mode .. "_" .. property)
 end
@@ -71,7 +71,7 @@ end
 -- Useful for syncing all tool convars at once.
 -- @realm shared
 -- @return table A table of `{ ["<mode>_<cvar>"] = defaultValue }` entries.
-function TOOL:BuildConVarList()
+function tool:BuildConVarList()
     local mode = self:GetMode()
     local convars = {}
 
@@ -88,7 +88,7 @@ end
 -- @realm shared
 -- @param property string The convar suffix (the part after `"<mode>_"`).
 -- @return string The string value of the client convar.
-function TOOL:GetClientInfo(property)
+function tool:GetClientInfo(property)
     return self:GetOwner():GetInfo(self:GetMode() .. "_" .. property)
 end
 
@@ -99,7 +99,7 @@ end
 -- @param property string The convar suffix (the part after `"<mode>_"`).
 -- @param default number|nil The fallback value when the convar is unset. Defaults to 0.
 -- @return number The numeric value of the client convar.
-function TOOL:GetClientNumber(property, default)
+function tool:GetClientNumber(property, default)
     return self:GetOwner():GetInfoNum(self:GetMode() .. "_" .. property, tonumber(default) or 0)
 end
 
@@ -108,7 +108,7 @@ end
 -- On the server, reads the `"toolmode_allow_<mode>"` convar created by `CreateConVars`; returns its boolean value.
 -- @realm shared
 -- @return boolean True if the tool is allowed, false if disabled by the server.
-function TOOL:Allowed()
+function tool:Allowed()
     if ( CLIENT ) then
         return true
     end
@@ -120,7 +120,7 @@ end
 -- Empty by default; override this in a tool definition to run setup logic when the tool object is created.
 -- Equivalent to the `Init` stub in the Sandbox tool base.
 -- @realm shared
-function TOOL:Init()
+function tool:Init()
 end
 
 --- Returns the mode string identifying this tool.
@@ -128,7 +128,7 @@ end
 -- It is used as the prefix for all convar names associated with this tool.
 -- @realm shared
 -- @return string The tool mode identifier string.
-function TOOL:GetMode()
+function tool:GetMode()
     return self.Mode
 end
 
@@ -137,7 +137,7 @@ end
 -- Access the owning player via `GetOwner()` rather than reading `SWEP.Owner` directly.
 -- @realm shared
 -- @return table The SWEP entity table.
-function TOOL:GetSWEP()
+function tool:GetSWEP()
     return self.SWEP
 end
 
@@ -146,7 +146,7 @@ end
 -- This is the player who has the `gmod_tool` weapon equipped.
 -- @realm shared
 -- @return Player The owning player entity.
-function TOOL:GetOwner()
+function tool:GetOwner()
     return self:GetSWEP().Owner or self.Owner
 end
 
@@ -155,7 +155,7 @@ end
 -- Equivalent to the `gmod_tool` weapon entity rather than the owning player.
 -- @realm shared
 -- @return Entity The weapon entity.
-function TOOL:GetWeapon()
+function tool:GetWeapon()
     return self:GetSWEP().Weapon or self.Weapon
 end
 
@@ -164,7 +164,7 @@ end
 -- Override in a tool definition to implement the primary tool interaction (e.g. placing, welding, constraining).
 -- @realm shared
 -- @return boolean True if the click was handled, false otherwise.
-function TOOL:LeftClick()
+function tool:LeftClick()
     return false
 end
 
@@ -173,7 +173,7 @@ end
 -- Override in a tool definition to implement the secondary tool interaction.
 -- @realm shared
 -- @return boolean True if the click was handled, false otherwise.
-function TOOL:RightClick()
+function tool:RightClick()
     return false
 end
 
@@ -181,7 +181,7 @@ end
 -- Clears all stored objects via `ClearObjects`.
 -- Override to add additional reset behaviour, but ensure `ClearObjects` is still called to maintain consistent state.
 -- @realm shared
-function TOOL:Reload()
+function tool:Reload()
     self:ClearObjects()
 end
 
@@ -189,7 +189,7 @@ end
 -- Releases any ghost entity via `ReleaseGhostEntity`.
 -- Override to show a preview ghost or run setup logic when the player switches to this tool.
 -- @realm shared
-function TOOL:Deploy()
+function tool:Deploy()
     self:ReleaseGhostEntity()
     return
 end
@@ -198,7 +198,7 @@ end
 -- Releases any ghost entity via `ReleaseGhostEntity`.
 -- Override to clean up any visual state or timers created during `Deploy`.
 -- @realm shared
-function TOOL:Holster()
+function tool:Holster()
     self:ReleaseGhostEntity()
     return
 end
@@ -207,7 +207,7 @@ end
 -- Releases any ghost entity by default.
 -- Override to implement per-frame ghost preview updates; call `ReleaseGhostEntity` only when no ghost should be shown.
 -- @realm shared
-function TOOL:Think()
+function tool:Think()
     self:ReleaseGhostEntity()
 end
 
@@ -217,7 +217,7 @@ end
 -- Checks the objects before any action is taken
 -- This is to make sure that the entities haven't been removed
 -- @realm shared
-function TOOL:CheckObjects()
+function tool:CheckObjects()
     for _, v in pairs(self.Objects) do
         if ( !v.Ent:IsWorld() and !v.Ent:IsValid() ) then
             self:ClearObjects()
@@ -225,4 +225,4 @@ function TOOL:CheckObjects()
     end
 end
 
-ax.tool.meta = TOOL
+ax.tool.meta = tool
