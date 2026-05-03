@@ -28,6 +28,9 @@ Check [API Reference](05-API_REFERENCE.md) for complete function documentation.
 ### For Examples
 Browse [Examples](06-EXAMPLES.md) to see practical implementations.
 
+### For Admin/Usergroup Setup
+Read [Usergroup System](intermediate/usergroups.md) for a beginner-friendly walkthrough of staff roles and permissions.
+
 ## External Resources
 
 - [Garry's Mod Wiki](https://wiki.facepunch.com/gmod) - Official GMod documentation
