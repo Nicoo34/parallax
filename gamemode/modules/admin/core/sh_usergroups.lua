@@ -424,7 +424,7 @@ function MODULE:CanManageUsergroup(actor, target, usergroup)
         return false, targetReason
     end
 
-    local hookResult, hookReason = hook.Run("CanManageUsergroup", actor, target, normalizedID, group)
+    local hookResult, hookReason = hook.Run("CanPlayerManageUsergroup", actor, target, normalizedID, group)
     if ( hookResult == false ) then
         return false, hookReason or "You cannot manage that usergroup."
     end
