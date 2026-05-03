@@ -791,7 +791,7 @@ function GM:CanTool(client, tr, tool)
 end
 
 function GM:PlayerSpray(client)
-    return false
+    return true -- Why did gmod decide to make it so that returning true prevents sprays? This is so counterintuitive.
 end
 
 function GM:CanDrive(client, ent)
