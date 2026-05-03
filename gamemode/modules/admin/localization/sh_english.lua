@@ -5,4 +5,9 @@ ax.localization:Register("en", {
     ["tab.admin"] = "Admin",
     ["tab.admin.activity"] = "Activity",
     ["tab.admin.bans"] = "Bans",
+    ["tab.admin.usergroups"] = "Usergroups",
+    ["admin.usergroups"] = "Usergroups",
+    ["admin.usergroups.help"] = "Manage Parallax usergroups and CAMI-compatible staff access.",
+    ["admin.usergroups.manage"] = "Manage Usergroups",
+    ["admin.usergroups.list"] = "List Usergroups",
 })
