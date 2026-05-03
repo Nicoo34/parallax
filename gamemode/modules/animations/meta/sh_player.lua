@@ -9,7 +9,9 @@
     Attribution is required. If you use or modify this file, you must retain this notice.
 ]]
 
-function ax.player.meta:GetHoldType()
+local player = ax.player.meta or FindMetaTable("Player")
+
+function player:GetHoldType()
     if ( !ax.util:IsValidPlayer(self) ) then return "normal" end
 
     local weapon = self:GetActiveWeapon()
@@ -47,14 +49,14 @@ local function GetForcedSequenceResolveTimerName(client)
 end
 
 if ( CLIENT ) then
-    function ax.player.meta:ClearForcedSequenceResolution()
+    function player:ClearForcedSequenceResolution()
         local clientTable = self:GetTable()
         clientTable.axForcedSequence = nil
 
         self:SetRelay("sequence.id", nil, true)
     end
 
-    function ax.player.meta:ResolveForcedSequence(sequence)
+    function player:ResolveForcedSequence(sequence)
         sequence = sequence != nil and sequence or self:GetRelay("sequence.identifier")
         if ( sequence == nil ) then
             self:ClearForcedSequenceResolution()
@@ -98,10 +100,10 @@ if ( CLIENT ) then
         return resolvedID, duration
     end
 else
-    function ax.player.meta:ClearForcedSequenceResolution()
+    function player:ClearForcedSequenceResolution()
     end
 
-    function ax.player.meta:ResolveForcedSequence(sequence)
+    function player:ResolveForcedSequence(sequence)
         return nil, 0
     end
 end
@@ -172,7 +174,7 @@ if ( SERVER ) then
         return true, self:ApplyForcedSequenceTiming(client, pending.identifier, sequenceTime)
     end
 
-    function ax.player.meta:LeaveSequence()
+    function player:LeaveSequence()
         local prevent = hook.Run("PrePlayerLeaveSequence", self)
         if ( prevent != nil and prevent == false ) then return end
 
@@ -200,7 +202,7 @@ if ( SERVER ) then
         hook.Run("PostPlayerLeaveSequence", self)
     end
 
-    function ax.player.meta:ForceSequence(sequence, callback, time, noFreeze)
+    function player:ForceSequence(sequence, callback, time, noFreeze)
         local prevent = hook.Run("PrePlayerForceSequence", self, sequence, callback, time, noFreeze)
         if ( prevent != nil and prevent == false ) then
             ax.util:PrintDebug("ForceSequence was prevented by a hook for player " .. self:Name() .. "!")

@@ -9,7 +9,9 @@
     Attribution is required. If you use or modify this file, you must retain this notice.
 ]]
 
-ax.player.meta.BanInternal = ax.player.meta.BanInternal or ax.player.meta.Ban
+local player = ax.player.meta or FindMetaTable("Player")
+
+player.BanInternal = player.BanInternal or player.Ban
 
 --- Creates a Parallax-managed ban for this player.
 -- Overrides Garry's Mod's native Player:Ban so every ban is persisted in ax_bans.
@@ -19,7 +21,7 @@ ax.player.meta.BanInternal = ax.player.meta.BanInternal or ax.player.meta.Ban
 -- @param reason string Optional ban reason.
 -- @param admin Player|nil Optional admin responsible for the ban.
 -- @param callback function|nil Optional callback receiving (ok, banData, err).
-function ax.player.meta:Ban(minutes, bKick, reason, admin, callback)
+function player:Ban(minutes, bKick, reason, admin, callback)
     if ( !ax.util:IsValidPlayer(self) ) then return false end
 
     local banModule = ax.admin

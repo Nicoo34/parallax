@@ -9,13 +9,13 @@
     Attribution is required. If you use or modify this file, you must retain this notice.
 ]]
 
--- @module ax.player.meta
+local player = ax.player.meta or FindMetaTable("Player")
 
 --- Get all physical zones the player is currently in.
 -- @realm shared
 -- @treturn table Array of zone specs, sorted by priority
 -- @usage local zones = client:GetZones()
-function ax.player.meta:GetZones()
+function player:GetZones()
     return ax.zones:AtPos(self:WorldSpaceCenter())
 end
 
@@ -23,7 +23,7 @@ end
 -- @realm shared
 -- @treturn table Array of zone specs with weight field
 -- @usage local visible = client:GetVisibleZones()
-function ax.player.meta:GetVisibleZones()
+function player:GetVisibleZones()
     return ax.zones:VisibleZones(self)
 end
 
@@ -31,7 +31,7 @@ end
 -- @realm shared
 -- @treturn table Blend state with physical, visible, and dominant fields
 -- @usage local blend = client:GetZoneBlend()
-function ax.player.meta:GetZoneBlend()
+function player:GetZoneBlend()
     local blend = ax.zones:BlendFor(self)
 
     if ( !blend.dominant and ax.config:Get("zones.tracking.use_last_dominant", true) != false ) then
@@ -48,7 +48,7 @@ end
 -- @realm shared
 -- @treturn table|nil The dominant zone spec or nil
 -- @usage local zone = client:GetDominantZone()
-function ax.player.meta:GetDominantZone()
+function player:GetDominantZone()
     local dominant = ax.zones:GetDominant(self)
     if ( dominant ) then
         return dominant
@@ -69,7 +69,7 @@ end
 -- @tparam number|string identifier Zone ID or name
 -- @treturn boolean True if player is in the zone
 -- @usage if client:IsInZone("Safe Zone") then
-function ax.player.meta:IsInZone(identifier)
+function player:IsInZone(identifier)
     local zone = ax.zones:Get(identifier)
     if ( !zone ) then return false end
 
@@ -89,7 +89,7 @@ end
 -- @tparam number|string identifier Zone ID or name
 -- @treturn boolean True if player can see the zone
 -- @usage if client:CanSeeZone("Tower Overlook") then
-function ax.player.meta:CanSeeZone(identifier)
+function player:CanSeeZone(identifier)
     local zone = ax.zones:Get(identifier)
     if ( !zone ) then return false end
     if ( zone.type != "pvs" and zone.type != "trace" ) then return false end
@@ -111,7 +111,7 @@ end
 -- @tparam any flagValue Optional value to match (if nil, checks for existence)
 -- @treturn boolean True if in a zone with the flag
 -- @usage if client:IsInZoneWithFlag("pvp", true) then
-function ax.player.meta:IsInZoneWithFlag(flagName, flagValue)
+function player:IsInZoneWithFlag(flagName, flagValue)
     local zones = self:GetZones()
     for _ = 1, #zones do
         local zone = zones[_]
@@ -129,7 +129,7 @@ end
 -- @tparam any flagValue Optional value to match (if nil, checks for existence)
 -- @treturn table Array of zone specs
 -- @usage local pvpZones = client:GetZonesWithFlag("pvp", true)
-function ax.player.meta:GetZonesWithFlag(flagName, flagValue)
+function player:GetZonesWithFlag(flagName, flagValue)
     local zones = self:GetZones()
     local result = {}
 
@@ -149,7 +149,7 @@ end
 -- @tparam any flagValue Optional value to match (if nil, checks for existence)
 -- @treturn boolean True if dominant zone has the flag
 -- @usage if client:DominantZoneHasFlag("safe", true) then
-function ax.player.meta:DominantZoneHasFlag(flagName, flagValue)
+function player:DominantZoneHasFlag(flagName, flagValue)
     local dominant = self:GetDominantZone()
     if ( !dominant or !dominant.flags ) then return false end
 
@@ -164,7 +164,7 @@ end
 -- @realm shared
 -- @treturn table|nil Tracking state or nil
 -- @usage local state = client:GetZoneTracking()
-function ax.player.meta:GetZoneTracking()
+function player:GetZoneTracking()
     if ( SERVER ) then
         return ax.zones:GetTracking(self)
     else
@@ -181,7 +181,7 @@ end
 -- @tparam string key Data key to retrieve
 -- @treturn any The data value or nil
 -- @usage local music = client:GetDominantZoneData("music_track")
-function ax.player.meta:GetDominantZoneData(key)
+function player:GetDominantZoneData(key)
     local dominant = self:GetDominantZone()
     if ( !dominant or !dominant.data ) then return nil end
 
@@ -193,7 +193,7 @@ end
 -- @tparam string key Data key to retrieve
 -- @treturn any The data value or nil
 -- @usage local spawn = client:GetZoneData("spawn_point")
-function ax.player.meta:GetZoneData(key)
+function player:GetZoneData(key)
     local zones = self:GetZones()
     for _ = 1, #zones do
         local zone = zones[_]
@@ -210,7 +210,7 @@ end
 -- @tparam string zoneType Zone type ("box", "sphere", "pvs", "trace")
 -- @treturn boolean True if in a zone of that type
 -- @usage if client:IsInZoneType("box") then
-function ax.player.meta:IsInZoneType(zoneType)
+function player:IsInZoneType(zoneType)
     local zones = self:GetZones()
     for _ = 1, #zones do
         local zone = zones[_]
@@ -227,7 +227,7 @@ end
 -- @tparam string zoneType Zone type ("box", "sphere", "pvs", "trace")
 -- @treturn table Array of zone specs
 -- @usage local boxes = client:GetZonesByType("box")
-function ax.player.meta:GetZonesByType(zoneType)
+function player:GetZonesByType(zoneType)
     local zones = self:GetZones()
     local result = {}
 
@@ -246,7 +246,7 @@ end
 -- @realm shared
 -- @treturn table|nil The highest priority zone or nil
 -- @usage local topZone = client:GetHighestPriorityZone()
-function ax.player.meta:GetHighestPriorityZone()
+function player:GetHighestPriorityZone()
     local zones = self:GetZones()
     return zones[1]
 end
@@ -255,7 +255,7 @@ end
 -- @realm shared
 -- @treturn boolean True if in more than one zone
 -- @usage if client:IsInMultipleZones() then
-function ax.player.meta:IsInMultipleZones()
+function player:IsInMultipleZones()
     local zones = self:GetZones()
     return #zones > 1
 end
@@ -264,7 +264,7 @@ end
 -- @realm shared
 -- @treturn number Number of zones
 -- @usage local count = client:GetZoneCount()
-function ax.player.meta:GetZoneCount()
+function player:GetZoneCount()
     local zones = self:GetZones()
     return #zones
 end
@@ -273,7 +273,7 @@ end
 -- @realm shared
 -- @treturn table Array of zone names
 -- @usage local names = client:GetZoneNames()
-function ax.player.meta:GetZoneNames()
+function player:GetZoneNames()
     local zones = self:GetZones()
     local names = {}
 
@@ -290,7 +290,7 @@ end
 -- @tparam number|string identifier Zone ID or name
 -- @treturn number|nil Distance or nil if zone not found
 -- @usage local dist = client:GetDistanceToZone("Safe Zone")
-function ax.player.meta:GetDistanceToZone(identifier)
+function player:GetDistanceToZone(identifier)
     local zone = ax.zones:Get(identifier)
     if ( !zone ) then return nil end
 
@@ -315,7 +315,7 @@ end
 -- Includes physical zones and visible PVS/trace zones.
 -- @treturn string|nil Zone name or nil
 -- @usage local zoneName = client:GetCurrentZoneName()
-function ax.player.meta:GetCurrentZoneName()
+function player:GetCurrentZoneName()
     local zone = self:GetDominantZone()
     if ( zone ) then
         return zone.name

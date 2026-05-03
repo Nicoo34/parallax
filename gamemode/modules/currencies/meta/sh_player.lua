@@ -9,10 +9,6 @@
     Attribution is required. If you use or modify this file, you must retain this notice.
 ]]
 
---- Player meta extensions for currency management.
--- These functions forward calls to the player's active character.
--- @module ax.player.meta
-
 local player = ax.player.meta
 
 -- @param uniqueID string|nil The unique identifier of the currency (defaults to "default")
