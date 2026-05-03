@@ -1,12 +1,17 @@
 local MODULE = MODULE or {}
 
 function MODULE:PlayerReady(client)
-    local usergroup = client:GetUsergroup()
-    if ( client:IsListenServerHost() ) then
-        usergroup = "superadmin" -- Ensure listen server host is always superadmin
+    if ( !isfunction(self.SyncPlayerUsergroup) ) then
+        local usergroup = client:GetUsergroup()
+        if ( client:IsListenServerHost() ) then
+            usergroup = "superadmin"
+        end
+
+        client:SetUserGroup(usergroup)
+        return
     end
 
-    client:SetUserGroup(usergroup)
+    self:SyncPlayerUsergroup(client)
 end
 
 function MODULE:PhysgunPickup(client, entity)
