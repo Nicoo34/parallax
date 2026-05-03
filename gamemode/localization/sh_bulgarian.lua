@@ -232,7 +232,7 @@ ax.localization:Register("bg", {
     ["option.hud.targetid.position_speed"] = "TargetID Скорост на Последване",
     ["option.hud.targetid.max_width"] = "TargetID Ширина на Описание",
     ["option.hud.targetid.line_spacing"] = "TargetID Интервал между Редове",
-    ["option.hud.targetid.visible_delay"] = "TargetID Забавяне на Видимost"
+    ["option.hud.targetid.visible_delay"] = "TargetID Забавяне на Видимost",
     ["option.hud.targetid.player_offset"] = "TargetID Offset за Играчи",
     ["option.hud.targetid.flash_speed"] = "TargetID скорост на Блесък",
     ["option.hud.targetid.show_descriptions"] = "Покажи Описания на TargetID",
