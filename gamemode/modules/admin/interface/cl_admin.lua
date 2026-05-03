@@ -37,6 +37,11 @@ hook.Add("PopulateTabButtons", "ax.tab.admin", function(buttons)
                 Populate = function(this, panel)
                     panel:Add("ax.tab.admin.bans")
                 end
+            },
+            ["usergroups"] = {
+                Populate = function(this, panel)
+                    panel:Add("ax.tab.admin.usergroups")
+                end
             }
         }
     }
