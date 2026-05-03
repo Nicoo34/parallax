@@ -59,11 +59,46 @@ end
 -- Returns an empty table when no characters have been loaded yet.
 -- @realm shared
 -- @return table An ordered array of character instances, or `{}` if none are loaded.
-function ax.player.meta:GetCharacters()
+function player:GetCharacters()
     local tbl = self:GetTable()
     if ( !istable(tbl) ) then return {} end
 
     return tbl.axCharacters or {}
+end
+
+--- Creates a timer bound to this player.
+-- Prefixes the timer name with the player's SteamID64 so multiple players can safely use the same logical timer name.
+-- Each tick validates that the player is still valid before running `callback` with the player as its first argument.
+-- If the player becomes invalid, the optional `failure` callback is invoked and the timer is removed.
+-- @realm shared
+-- @param name string The logical timer name to create for this player.
+-- @param time number Delay in seconds between timer executions.
+-- @param reps number Number of repetitions, or `0` to repeat indefinitely.
+-- @param callback function Called as `callback(client)` while the player remains valid.
+-- @param failure function|nil Called if the player becomes invalid before a timer tick can run.
+function player:Timer(name, time, reps, callback, failure)
+    name = "ax.player." .. self:SteamID64() .. "." .. name
+
+    timer.Create(name, time, reps, function()
+        if ( ax.util:IsValidPlayer(self) ) then
+            callback(self)
+            return
+        end
+
+        if ( failure ) then
+            failure()
+        end
+
+        timer.Remove(name)
+    end)
+end
+
+--- Removes a timer bound to this player.
+-- Removes the timer created with `Player:Timer` by applying the same SteamID64 prefix to the logical timer name.
+-- @realm shared
+-- @param name string The logical timer name to remove for this player.
+function player:RemoveTimer(name)
+    timer.Remove("ax.player." .. self:SteamID64() .. "." .. name)
 end
 
 --- Returns the player's current faction index, or nil if not in a valid faction.
@@ -71,7 +106,7 @@ end
 -- Returns nil for spectators, players not yet assigned a faction, or indices that don't map to a registered faction.
 -- @realm shared
 -- @return number|nil The faction index, or nil if not in a valid faction.
-function ax.player.meta:GetFaction()
+function player:GetFaction()
     local teamIndex = self:Team()
     if ( ax.faction:IsValid(teamIndex) ) then
         return teamIndex
