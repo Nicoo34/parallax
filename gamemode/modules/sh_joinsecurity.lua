@@ -61,6 +61,7 @@ if ( SERVER ) then
     MODULE.GMODVERSION  = VERSION
     MODULE.GMODBRANCH   = BRANCH
     function MODULE:PlayerAuthed(client, steamid, _)
+        if ( game.SinglePlayer() ) then return end
         if ( !ax.config:Get("joinsecurity.antifamilyshare", true) ) then return end
 
         local sid64Owner = client:OwnerSteamID64()
@@ -74,6 +75,7 @@ if ( SERVER ) then
     end
 
     ax.net:Hook("joinsecurity.versioncheck", function(client, clientVersion, clientBranch)
+        if ( game.SinglePlayer() ) then return end
         if ( !ax.config:Get("joinsecurity.versionmismatch", true) ) then return end
 
         if ( ( ax.config:Get("config.joinsecurity.versionmismatch.branchmatch", true) and clientBranch == MODULE.GMODBRANCH ) and clientVersion != MODULE.GMODVERSION ) then
@@ -84,6 +86,8 @@ if ( SERVER ) then
     end)
 else
     function MODULE:OnClientCached()
+        if ( game.SinglePlayer() ) then return end
+
         ax.net:Start("joinsecurity.versioncheck", VERSION, BRANCH)
     end
 end
