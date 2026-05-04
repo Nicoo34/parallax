@@ -21,6 +21,12 @@ ax.config:Add("joinsecurity.versionmismatch.branchmatch", ax.type.bool, false, {
     category = "general",
 })
 
+ax.config:Add("joinsecurity.antivpn", ax.type.bool, false, {
+    description = "joinsecurity.antivpn.help",
+    subCategory = "joinsecurity",
+    category = "general",
+})
+
 ax.localization:Register("en", {
     ["subcategory.joinsecurity"] = "Join Security",
 
@@ -31,6 +37,9 @@ ax.localization:Register("en", {
 
     ["config.joinsecurity.versionmismatch"] = "Version Mismatch",
     ["config.joinsecurity.versionmismatch.help"] = "Kicks players with mismatched client versions.",
+
+    ["config.joinsecurity.antivpn"] = "Anti-VPN",
+    ["config.joinsecurity.antivpn.help"] = "Kicks players using VPN services.",
 
     ["config.joinsecurity.versionmismatch.branchmatch"] = "Branch Match",
     ["config.joinsecurity.versionmismatch.branchmatch.help"] = "Only kicks players with mismatched client versions on the same branch as the server.",
@@ -60,9 +69,26 @@ if ( SERVER ) then
 
     MODULE.GMODVERSION  = VERSION
     MODULE.GMODBRANCH   = BRANCH
+    MODULE.ProxyURL = "https://proxycheck.io/v3/"
     function MODULE:PlayerAuthed(client, steamid, _)
         if ( game.SinglePlayer() ) then return end
         if ( !ax.config:Get("joinsecurity.antifamilyshare", true) ) then return end
+
+        if ( ax.config:Get("joinsecurity.antivpn", true) ) then
+            local ip = client:IPAddress()
+            http.Fetch(self.ProxyURL .. ip, function(body, size, headers, responseCode)
+                if ( responseCode == 200 ) then
+                    local data = util.JSONToTable(body)
+                    local result = data[ip]
+                    if ( data and result and result.detections.vpn == true ) then
+                        client:Kick(ax.localization:GetPhrase("joinsecurity.antivpn.kick_msg") or "You are not allowed to use a VPN.")
+                        print("Player " .. client:SteamName() .. "(" .. client:SteamID64() .. ")" .. " has been kicked for using a VPN.")
+                    end
+                end
+            end, function(error)
+                print("Error fetching proxy check data for player " .. client:SteamName() .. ": " .. error)
+            end)
+        end
 
         local sid64Owner = client:OwnerSteamID64()
         local sid64 = util.SteamIDTo64(steamid)
