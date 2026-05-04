@@ -77,13 +77,13 @@ if ( SERVER ) then
         if ( ax.config:Get("joinsecurity.antivpn", true) ) then
             local ip = client:IPAddress()
             http.Fetch(self.ProxyURL .. ip, function(body, size, headers, responseCode)
-                if ( responseCode == 200 ) then
-                    local data = util.JSONToTable(body)
-                    local result = data[ip]
-                    if ( data and result and result.detections.vpn == true ) then
-                        client:Kick(ax.localization:GetPhrase("joinsecurity.antivpn.kick_msg") or "You are not allowed to use a VPN.")
-                        print("Player " .. client:SteamName() .. "(" .. client:SteamID64() .. ")" .. " has been kicked for using a VPN.")
-                    end
+                if ( responseCode != 200 ) then return end
+
+                local data = util.JSONToTable(body)
+                local result = data[ip]
+                if ( data and result and result.detections.vpn == true ) then
+                    client:Kick(ax.localization:GetPhrase("joinsecurity.antivpn.kick_msg") or "You are not allowed to use a VPN.")
+                    print("Player " .. client:SteamName() .. "(" .. client:SteamID64() .. ")" .. " has been kicked for using a VPN.")
                 end
             end, function(error)
                 print("Error fetching proxy check data for player " .. client:SteamName() .. ": " .. error)
