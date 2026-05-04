@@ -72,7 +72,6 @@ if ( SERVER ) then
     MODULE.ProxyURL = "https://proxycheck.io/v3/"
     function MODULE:PlayerAuthed(client, steamid, _)
         if ( game.SinglePlayer() ) then return end
-        if ( !ax.config:Get("joinsecurity.antifamilyshare", true) ) then return end
 
         if ( ax.config:Get("joinsecurity.antivpn", true) ) then
             local ip = client:IPAddress()
@@ -90,13 +89,15 @@ if ( SERVER ) then
             end)
         end
 
-        local sid64Owner = client:OwnerSteamID64()
-        local sid64 = util.SteamIDTo64(steamid)
+        if ( ax.config:Get("joinsecurity.antifamilyshare", true) ) then
+            local sid64Owner = client:OwnerSteamID64()
+            local sid64 = util.SteamIDTo64(steamid)
 
-        if ( sid64Owner != sid64 ) then
-            client:Kick(ax.localization:GetPhrase("joinsecurity.antifamilyshare.kick_msg") or "You must own the game, not play it via family sharing.")
-            print("Player " .. client:SteamName() .. "(" .. client:SteamID64() .. ")" .. " has been kicked for anti-family share violation.")
-            return
+            if ( sid64Owner != sid64 ) then
+                client:Kick(ax.localization:GetPhrase("joinsecurity.antifamilyshare.kick_msg") or "You must own the game, not play it via family sharing.")
+                print("Player " .. client:SteamName() .. "(" .. client:SteamID64() .. ")" .. " has been kicked for anti-family share violation.")
+                return
+            end
         end
     end
 
