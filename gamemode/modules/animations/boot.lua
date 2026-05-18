@@ -55,3 +55,11 @@ LANG["config.animations.ik.help"] = "Cuando está habilitado, los pies del jugad
 LANG["category.animations"] = "Animaciones"
 
 ax.localization:Register("es", LANG)
+
+LANG = {}
+LANG["config.animations.ik"] = "Cinématique Inverse (IK)"
+LANG["config.animations.ik.help"] = "Lorsqu'elle est activée, les pieds du joueur s'ajusteront au terrain accidenté pour un mouvement plus réaliste."
+LANG["category.animations"] = "Animations"
+
+ax.localization:Register("fr", LANG)
+

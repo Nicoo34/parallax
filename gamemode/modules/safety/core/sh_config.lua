@@ -71,3 +71,11 @@ ax.localization:Register("bg", {
     ["config.weapon.raise.time.help"] = "Колко дълго трябва да се задържи клавишът за презареждане (в секунди), за да се превключи вдигането на оръжието.",
     ["config.weapon.raise.alwaysraised.help"] = "Когато е включено, всички играчи винаги ще имат вдигнато оръжие, независимо от индивидуалното им състояние.",
 })
+
+ax.localization:Register("fr", {
+    ["subcategory.weapon_safety"] = "Sécurité des Armes",
+    ["config.weapon.raise.time"] = "Temps de Maintien pour Lever l'Arme",
+    ["config.weapon.raise.alwaysraised"] = "Arme Toujours Levée",
+    ["config.weapon.raise.time.help"] = "Combien de temps la touche de rechargement doit être maintenue (en secondes) avant de basculer le levage de l'arme.",
+    ["config.weapon.raise.alwaysraised.help"] = "Lorsqu'elle est activée, tous les joueurs auront toujours leur arme levée indépendamment de l'état individuel.",
+})

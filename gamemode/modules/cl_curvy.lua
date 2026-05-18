@@ -79,6 +79,14 @@ ax.localization:Register("es", {
     ["option.curvy.edge_fade"] = "Desvanecimiento de Bordes"
 })
 
+ax.localization:Register("fr", {
+    ["category.interface"] = "Interface",
+    ["subcategory.effects"] = "Effets",
+    ["option.curvy"] = "HUD Courbé",
+    ["option.curvy.intensity"] = "Courbure",
+    ["option.curvy.edge_fade"] = "Fondu des Bords"
+})
+
 ax.curvy = ax.curvy or {}
 ax.curvy.hud = ax.curvy.hud or nil
 ax.curvy.mat = ax.curvy.mat or nil

@@ -38,6 +38,23 @@ ax.localization:Register("en", {
     ["joinsecurity.versionmismatch.kick_msg"] = "Your client version does not match the server's version.\nYours: %s\nServer: %s",
 })
 
+ax.localization:Register("fr", {
+    ["subcategory.joinsecurity"] = "Sécurité de Connexion",
+
+    ["config.joinsecurity.antifamilyshare"] = "Anti-Partage en Famille",
+    ["config.joinsecurity.antifamilyshare.help"] = "Expulse les joueurs qui ont le jeu via le partage en famille.",
+
+    ["joinsecurity.antifamilyshare.kick_msg"] = "Vous devez posséder le jeu, pas y jouer via le partage en famille.",
+
+    ["config.joinsecurity.versionmismatch"] = "Incompatibilité de Version",
+    ["config.joinsecurity.versionmismatch.help"] = "Expulse les joueurs avec des versions client incompatibles.",
+
+    ["config.joinsecurity.versionmismatch.branchmatch"] = "Correspondance de Branche",
+    ["config.joinsecurity.versionmismatch.branchmatch.help"] = "N'expulse que les joueurs avec des versions client incompatibles sur la même branche que le serveur.",
+
+    ["joinsecurity.versionmismatch.kick_msg"] = "Votre version client ne correspond pas à celle du serveur.\nLa vôtre : %s\nServeur : %s",
+})
+
 if ( SERVER ) then
     concommand.Add("ax_joinsecurity_toggle_familyshare", function(client, cmd, args)
         local value = ax.config:Get("joinsecurity.antifamilyshare", true)

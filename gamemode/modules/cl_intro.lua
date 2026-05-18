@@ -269,6 +269,49 @@ ax.localization:Register("tr", {
     ["option.intro.sound.path.help"] = "Daktilo efekti için kullanılan ses yolu."
 })
 
+ax.localization:Register("fr", {
+    ["category.interface"] = "Interface",
+    ["subcategory.intro"] = "Intro",
+    ["config.intro.enabled"] = "Activer l'introduction",
+    ["config.intro.enabled.help"] = "Permettre l'affichage de l'introduction de bienvenue pour les clients.",
+    ["config.intro.location.show"] = "Afficher la ligne de l'emplacement",
+    ["config.intro.location.show.help"] = "Afficher la ligne principale de l'emplacement dans l'introduction.",
+    ["config.intro.location.text"] = "Texte de l'emplacement",
+    ["config.intro.location.text.help"] = "Texte pour la ligne principale de l'emplacement.",
+    ["config.intro.framework.show"] = "Afficher les crédits du framework",
+    ["config.intro.framework.show.help"] = "Afficher les crédits du framework.",
+    ["config.intro.framework.template"] = "Modèle de crédits du framework",
+    ["config.intro.framework.template.help"] = "Modèle pour les crédits du framework. Utilisez {author} et {framework}.",
+    ["config.intro.schema.show"] = "Afficher les crédits du schéma",
+    ["config.intro.schema.show.help"] = "Afficher la ligne des crédits du schéma.",
+    ["config.intro.schema.template"] = "Modèle de crédits du schéma",
+    ["config.intro.schema.template.help"] = "Modèle pour les crédits du schéma. Utilisez {schema} et {schema_author}.",
+    ["config.intro.text.color"] = "Couleur du texte de l'introduction",
+    ["config.intro.text.color.help"] = "Couleur de base pour les lignes de l'introduction.",
+    ["config.intro.font.title"] = "Police du titre",
+    ["config.intro.font.title.help"] = "Police pour la ligne principale de l'introduction.",
+    ["config.intro.font.credits"] = "Police des crédits",
+    ["config.intro.font.credits.help"] = "Police pour les lignes de crédits.",
+    ["option.intro.enabled"] = "Afficher l'introduction",
+    ["option.intro.enabled.help"] = "Afficher l'introduction de bienvenue sur votre client.",
+    ["option.intro.hold.time"] = "Durée d'affichage par ligne",
+    ["option.intro.hold.time.help"] = "Combien de temps chaque ligne d'introduction reste à l'écran.",
+    ["option.intro.fade.speed"] = "Vitesse de fondu",
+    ["option.intro.fade.speed.help"] = "Vitesse de fondu pour les lignes d'introduction (plus élevé est plus rapide).",
+    ["option.intro.fade.out.delay"] = "Délai avant le fondu de sortie",
+    ["option.intro.fade.out.delay.help"] = "Secondes avant la fin pour commencer à fondre.",
+    ["option.intro.typewriter.enabled"] = "Effet de machine à écrire",
+    ["option.intro.typewriter.enabled.help"] = "Activer l'effet de machine à écrire.",
+    ["option.intro.typewriter.delay"] = "Délai de machine à écrire",
+    ["option.intro.typewriter.delay.help"] = "Délai entre chaque caractère tapé.",
+    ["option.intro.sound.enabled"] = "Son de machine à écrire",
+    ["option.intro.sound.enabled.help"] = "Jouer un son pour chaque caractère tapé.",
+    ["option.intro.sound.path"] = "Chemin du son de machine à écrire",
+    ["option.intro.sound.path.help"] = "Chemin du son utilisé pour l'effet de machine à écrire."
+
+})
+
+
 local function FormatTemplate(template, data)
     if ( !isstring(template) ) then return "" end
 
